@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Event Management</title>
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="/" th:if="${#httpServletRequest.remoteUser != null}">Home</a>
+            <a th:href="@{/login}" th:if="${#httpServletRequest.remoteUser == null}">Login</a>
+            <a th:href="@{/logout}" th:if="${#httpServletRequest.remoteUser != null}">Logout</a>
+        </nav>
+    </header>
+    <main>
+        <div th:insert="~{::content}"></div>
+    </main>
+</body>
+</html>
