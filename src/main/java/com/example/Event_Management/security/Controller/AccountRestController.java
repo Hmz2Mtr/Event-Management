@@ -207,18 +207,18 @@ public class AccountRestController {
         return "Home/index";
     }
 
-    @GetMapping("/events")
-    public String events(Model model, HttpServletRequest request) {
-        logger.debug("Processing home page request");
-
-        // Decode JWT using JwtTokenDecoder
-        Map<String, Object> userInfo = jwtTokenDecoder.decodeToken(request);
-        model.addAttribute("username", userInfo.get("username"));
-        model.addAttribute("roles", userInfo.get("roles"));
-
-        addAuthButtonAttributes(model, userInfo);
-        return "Home/events";
-    }
+//    @GetMapping("/events")
+//    public String events(Model model, HttpServletRequest request) {
+//        logger.debug("Processing home page request");
+//
+//        // Decode JWT using JwtTokenDecoder
+//        Map<String, Object> userInfo = jwtTokenDecoder.decodeToken(request);
+//        model.addAttribute("username", userInfo.get("username"));
+//        model.addAttribute("roles", userInfo.get("roles"));
+//
+//        addAuthButtonAttributes(model, userInfo);
+//        return "Home/events";
+//    }
 
     @GetMapping("/about")
     public String adbout(Model model, HttpServletRequest request) {

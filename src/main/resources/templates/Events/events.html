@@ -102,9 +102,12 @@
       <ul>
         <li><a href="/">Home</a></li>
         <li><a href="/about">About</a></li>
-        <li><a href="/events" class="active">Events</a></li>
-        <li><a href="/register">Create Event</a></li>
-        <li><a href="/pricing">Pricing</a></li>
+        <li><a href="/events">Events</a></li>
+        <li>
+          <form th:if="${roles != null and (roles.contains('ADMIN') or roles.contains('SUPER_ADMIN'))}">
+            <a  type="submit" href="/createEvent">Create Event</a>
+          </form>
+        </li>        <li><a href="/pricing" class="active">Pricing</a></li>
         <li class="dropdown"><a href="#"><span>Resources</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
           <ul>
             <li><a href="#">Event Planning Guide</a></li>

@@ -120,8 +120,11 @@
                 <li><a href="/">Home</a></li>
                 <li><a href="/about">About</a></li>
                 <li><a href="/events">Events</a></li>
-                <li><a href="/register" class="active">Create Event</a></li>
-                <li><a href="/pricing">Pricing</a></li>
+                <li>
+                    <form th:if="${roles != null and (roles.contains('ADMIN') or roles.contains('SUPER_ADMIN'))}">
+                        <a  type="submit" href="/createEvent">Create Event</a>
+                    </form>
+                </li>        <li><a href="/pricing" class="active">Pricing</a></li>
                 <li class="dropdown"><a href="#"><span>Resources</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
                     <ul>
                         <li><a href="#">Event Planning Guide</a></li>
@@ -145,7 +148,8 @@
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" th:if="${buttonMethod == 'post'}" />
                 <button class="btn-getstarted" type="submit" th:text="${buttonText}">Action</button>
             </form>
-        </div>    </div>
+        </div>
+    </div>
 </header>
 
 <main class="main">
@@ -155,7 +159,10 @@
         <div class="container" data-aos="fade-up" data-aos-delay="100">
             <img src="https://images.unsplash.com/photo-1540575467063-178a50c2df87" class="img-fluid event-banner" alt="Event Creation Banner">
             <h1>Create a New Event</h1>
+
+
             <form action="createEvent" method="post" id="eventForm" enctype="multipart/form-data">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                 <div class="mb-3">
                     <label for="eventName" class="form-label">Event Name</label>
                     <input type="text" class="form-control" id="eventName" name="name" required>
@@ -163,6 +170,17 @@
                 <div class="mb-3">
                     <label for="eventDescription" class="form-label">Event Description</label>
                     <textarea class="form-control" id="eventDescription" name="description" rows="4" required></textarea>
+                </div>
+                <div class="mb-3">
+                    <label for="eventType">Event Type</label>
+                    <select id="eventType" name="eventType" required>
+                        <option value="" disabled selected>Select event type</option>
+                        <option value="CONFERENCE">Conference</option>
+                        <option value="WORKSHOP">Workshop</option>
+                        <option value="SEMINAR">Seminar</option>
+                        <option value="MEETUP">Meetup</option>
+                        <option value="WEBINAR">Webinar</option>
+                    </select>
                 </div>
                 <div class="mb-3">
                     <label for="eventImage" class="form-label">Event Image</label>
@@ -325,7 +343,7 @@
         alertContainer.innerHTML = '';
 
         try {
-            const response = await fetch('/api/events', {
+            const response = await fetch('/createEvent', {
                 method: 'POST',
                 body: formData
             });
@@ -364,7 +382,7 @@
                 const error = await response.text();
                 alertContainer.innerHTML = `
             <div class="alert alert-danger" role="alert">
-              Error: ${error}
+              Error: ${error} finallyhihi
             </div>
           `;
             }

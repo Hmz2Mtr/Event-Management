@@ -71,7 +71,8 @@ public class SecurityConfig {
                                 "/recognize/**",
                                 "/store/**",
                                 "/logout").permitAll()
-                        .requestMatchers("/createEvent/**").hasAnyAuthority("ADMIN", "SUPER_ADMIN")
+                        .requestMatchers("GET", "/createEvent/**").permitAll() // Allow GET /events for all
+                        .requestMatchers("POST", "/createEvent/**").hasAnyAuthority("ADMIN", "SUPER_ADMIN") // Restrict POST /events
                         .anyRequest().authenticated()
                 )
 //                .formLogin(form -> form
