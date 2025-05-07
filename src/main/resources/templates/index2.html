@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Face Capture</title>
+    <script async src="https://docs.opencv.org/4.5.5/opencv.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; background-color: #f0f0f0; }
+        #video { border: 2px solid #333; margin: 10px; }
+        #status { margin-top: 10px; font-size: 18px; color: #333; }
+        #name { margin: 10px; padding: 5px; }
+        #startCapture { padding: 5px 10px; }
+    </style>
+</head>
+<body>
+<h1>Face Capture</h1>
+<input type="text" id="name" placeholder="Enter your name">
+<button id="startCapture">Start Capture</button>
+<p>Position your face clearly in the camera view.</p>
+<video id="video" width="640" height="480" autoplay></video>
+<div id="status">Waiting for a good face...</div>
+<script src="capture.js"></script>
+</body>
+</html>

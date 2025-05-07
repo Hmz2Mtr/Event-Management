@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Face Recognition</title>
+    <script async src="https://docs.opencv.org/4.5.5/opencv.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; background-color: #f0f0f0; }
+        #video { border: 2px solid #333; margin: 10px; }
+        #status { margin-top: 10px; font-size: 18px; color: #333; }
+    </style>
+</head>
+<body>
+<h1>Face Recognition</h1>
+<p>Position your face clearly to scan.</p>
+<video id="video" width="640" height="480" autoplay></video>
+<div id="status">Scanning for face...</div>
+<script src="recognition.js"></script>
+</body>
+</html>

@@ -29,19 +29,15 @@ import java.util.Collection;
 public class SecurityConfig {
     @Autowired
     private AccountService accountService;
-
-//    private UserDetailsServiceImpl userDetailsServiceImpl;
-//    public SecurityConfig(UserDetailsServiceImpl userDetailsServiceImpl) {
-//        this.userDetailsServiceImpl = userDetailsServiceImpl;
-//    }
-
-
     @Bean
     public UserDetailsService userDetailsService() {
         return new UserDetailsService() {
             @Override
             public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
                 AppUser appUser = accountService.loadUserByUsername(username);
+                if (appUser == null) {
+                    throw new UsernameNotFoundException("User not found");
+                }
                 Collection<GrantedAuthority> authorities = new ArrayList<>();
                 appUser.getAppRoles().forEach(role ->
                         authorities.add(new SimpleGrantedAuthority(role.getRoleName()))
@@ -51,23 +47,46 @@ public class SecurityConfig {
         };
     }
 
-
-
     @Bean
     protected SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/h2-console/**", "/refreshToken/**", "/login/**", "/logout/**", "/home", "/index").permitAll()
+                        .requestMatchers(
+                                "/assets/**",
+                                "/error",
+                                "/h2-console/**",
+                                "/refreshToken/**",
+                                "/events/**",
+                                "/",
+                                "/signin/**",
+                                "/signup/**",
+                                "/about",
+                                "/pricing",
+                                "/contact",
+                                "/scan/**",
+                                "/eventDetails",
+                                "/createEvent/**",
+                                "/eventss/**",
+                                "/index2/**",
+                                "/recognize/**",
+                                "/store/**",
+                                "/logout").permitAll()
+                        .requestMatchers("/createEvent/**").hasAnyAuthority("ADMIN", "SUPER_ADMIN")
                         .anyRequest().authenticated()
                 )
-                .formLogin(form -> form
-                        .loginPage("/login") // Specify the custom login page
-                        .defaultSuccessUrl("/home", true) // Redirect after successful login
-                        .failureUrl("/login?error=true") // Redirect on login failure
-                        .permitAll()
-                )
+//                .formLogin(form -> form
+//                        .loginPage("/login") // Specify the custom login page
+//                        .defaultSuccessUrl("/home", true) // Redirect after successful login
+//                        .failureUrl("/login?error=true") // Redirect on login failure
+//                        .permitAll()
+//                )
+
+                .formLogin(form -> form.disable()) // Disable default form login
+                .logout(logout -> logout.disable()) // Disable default logout handling
                 .csrf(csrf -> csrf
-                        .ignoringRequestMatchers("/h2-console/**")  // Only disable CSRF for H2 console
+                        .ignoringRequestMatchers("/signin/**","/signup/**") // Disable CSRF for /signin
+                        .ignoringRequestMatchers("/h2-console/**")  // Only disable CSRF for H2 consol
+                        .ignoringRequestMatchers("/logout")  // Only disable CSRF for H2 console
                         //.disable()
                 )
                 .sessionManagement(session -> session
@@ -78,6 +97,7 @@ public class SecurityConfig {
                 )
                 .addFilter(new JwtAuthenticationFilter(authenticationManagerBean(http.getSharedObject(AuthenticationConfiguration.class))))
                 .addFilterBefore(new JwtAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class);
+
         return http.build();
     }
 
