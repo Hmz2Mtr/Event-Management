@@ -111,9 +111,6 @@ public class AccountRestController {
                     .build();
         }
     }
-
-
-
     @GetMapping("/signup")
     public String signup(Model model, HttpServletRequest request) {
         logger.debug("Rendering signup page");
@@ -121,7 +118,6 @@ public class AccountRestController {
         addAuthButtonAttributes(model, userInfo);
         return "security/signup";
     }
-
     @PostMapping(value = "/signup")
     public ResponseEntity<?> signup(
             @RequestParam("username") String username,

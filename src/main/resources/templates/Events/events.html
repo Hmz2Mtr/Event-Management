@@ -87,6 +87,11 @@
       color: #666;
       margin-top: 20px;
     }
+    .speakers-list {
+      font-size: 0.85rem;
+      color: #666;
+      margin-bottom: 10px;
+    }
   </style>
 </head>
 
@@ -102,12 +107,11 @@
       <ul>
         <li><a href="/">Home</a></li>
         <li><a href="/about">About</a></li>
-        <li><a href="/events">Events</a></li>
-        <li>
-          <form th:if="${roles != null and (roles.contains('ADMIN') or roles.contains('SUPER_ADMIN'))}">
-            <a  type="submit" href="/createEvent">Create Event</a>
-          </form>
-        </li>        <li><a href="/pricing" class="active">Pricing</a></li>
+        <li><a href="/events" class="active">Events</a></li>
+        <li th:if="${roles != null and (roles.contains('ADMIN') or roles.contains('SUPER_ADMIN'))}">
+          <a href="/createEvent">Create Event</a>
+        </li>
+        <li><a href="/pricing">Pricing</a></li>
         <li class="dropdown"><a href="#"><span>Resources</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
           <ul>
             <li><a href="#">Event Planning Guide</a></li>
@@ -166,16 +170,20 @@
         <div class="col-md-6 col-lg-4 d-flex align-items-stretch mb-4" th:each="event : ${events}">
           <div class="card">
             <div class="card-img">
-              <img th:src="@{'data:image/jpeg;base64,' + ${#strings.toString(event.image)}}" class="img-fluid uniform-image" alt="Event Image" th:alt="${event.name} + ' Image'" th:unless="${event.image == null}"/>
-              <img src="https://images.unsplash.com/photo-1540575467063-178a50c2df87" class="img-fluid uniform-image" alt="Default Event Image" th:if="${event.image == null}"/>
+              <img th:src="${event.imageBase64 != null} ? @{'data:image/jpg;base64,' + ${event.imageBase64}} : 'https://images.unsplash.com/photo-1540575467063-178a50c2df87'" class="img-fluid uniform-image" th:alt="${event.name} + ' Image'"/>
             </div>
             <div class="card-body">
               <h3 class="card-title"><a th:href="@{'/event/' + ${event.id}}" th:text="${event.name}">Event Name</a></h3>
               <p class="event-details" th:if="${event.sessions != null and not #lists.isEmpty(event.sessions)}">
-                <i class="bi bi-calendar"></i> <span th:text="${event.sessions[0].date != null} ? ${#dates.format(event.sessions[0].date, 'MMM dd, yyyy')} : 'TBD'">TBD</span>
+                <i class="bi bi-calendar"></i> <span th:text="${event.sessions[0].date != null} ? ${#temporals.format(event.sessions[0].date, 'MMM dd, yyyy')} : 'TBD'">TBD</span> |
+                <span th:text="${event.sessions[0].startTime != null} ? ${#temporals.format(event.sessions[0].startTime, 'HH:mm')} : 'TBD'">TBD</span> -
+                <span th:text="${event.sessions[0].endTime != null} ? ${#temporals.format(event.sessions[0].endTime, 'HH:mm')} : 'TBD'">TBD</span>
               </p>
               <p class="event-details" th:if="${event.sessions != null and not #lists.isEmpty(event.sessions)}">
-                <i class="bi bi-geo-alt"></i> <span th:text="${event.sessions[0].place != null} ? ${event.sessions[0].place.ville.nom} + ', ' + ${event.sessions[0].place.nom} : 'TBD'">TBD</span>
+                <i class="bi bi-geo-alt"></i> <span th:text="${event.sessions[0].place != null and event.sessions[0].place.ville != null} ? ${event.sessions[0].place.ville.name} + ', ' + ${event.sessions[0].place.name} : 'TBD'">TBD</span>
+              </p>
+              <p class="speakers-list" th:if="${event.sessions != null and not #lists.isEmpty(event.sessions) and event.sessions[0].guestSpeakers != null and not #lists.isEmpty(event.sessions[0].guestSpeakers)}">
+                <i class="bi bi-person"></i> Speakers: <span th:each="speaker, iterStat : ${event.sessions[0].guestSpeakers}" th:text="${speaker.speakerName} + ${iterStat.last ? '' : ', '}">TBD</span>
               </p>
               <p class="card-text" th:text="${event.description != null} ? ${event.description} : 'No description available.'">No description available.</p>
               <a th:href="@{'/register?eventId=' + ${event.id}}" class="btn btn-register">Register Now</a>

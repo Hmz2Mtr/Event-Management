@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>Event Registration - SecurePass</title>
+    <meta name="description" content="Register for events with SecurePass and provide your details for secure attendee verification.">
+    <meta name="keywords" content="event registration, SecurePass, facial recognition">
+
+    <!-- Favicons -->
+    <link href="/assets/img/favicon.png" rel="icon">
+    <link href="/assets/img/apple-touch-icon.png" rel="apple-touch-icon">
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com" rel="preconnect">
+    <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900&family=Raleway:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900&display=swap" rel="stylesheet">
+
+    <!-- Vendor CSS Files -->
+    <link href="/assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+    <link href="/assets/vendor/aos/aos.css" rel="stylesheet">
+    <link href="/assets/vendor/glightbox/css/glightbox.min.css" rel="stylesheet">
+    <link href="/assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
+
+    <!-- Main CSS File -->
+    <link href="/assets/css/main.css" rel="stylesheet">
+
+    <!-- Custom CSS for Form -->
+    <style>
+        .register-form {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .register-form h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            font-weight: 500;
+            margin-bottom: 5px;
+            display: block;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 0.9rem;
+        }
+        .btn-submit {
+            background-color: #28a745;
+            border-color: #28a745;
+            color: white;
+            padding: 10px 20px;
+            font-size: 1rem;
+            border-radius: 5px;
+            width: 100%;
+            text-align: center;
+        }
+        .btn-submit:hover {
+            background-color: #218838;
+            border-color: #218838;
+        }
+        .error-message {
+            color: red;
+            font-size: 0.85rem;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+
+<body class="register-page">
+
+<header id="header" class="header d-flex align-items-center sticky-top">
+    <div class="container-fluid container-xl position-relative d-flex align-items-center">
+        <a href="/" class="logo d-flex align-items-center me-auto">
+            <h1 class="sitename">SecurePass</h1>
+        </a>
+
+        <nav id="navmenu" class="navmenu">
+            <ul>
+                <li><a href="/">Home</a></li>
+                <li><a href="/about">About</a></li>
+                <li><a href="/events" class="active">Events</a></li>
+                <li th:if="${roles != null and (roles.contains('ADMIN') or roles.contains('SUPER_ADMIN'))}">
+                    <a href="/createEvent">Create Event</a>
+                </li>
+                <li><a href="/pricing">Pricing</a></li>
+                <li class="dropdown"><a href="#"><span>Resources</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
+                    <ul>
+                        <li><a href="#">Event Planning Guide</a></li>
+                        <li class="dropdown"><a href="#"><span>Support</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
+                            <ul>
+                                <li><a href="#">FAQ</a></li>
+                                <li><a href="#">Troubleshooting</a></li>
+                                <li><a href="#">Contact Support</a></li>
+                            </ul>
+                        </li>
+                        <li><a href="#">Blog</a></li>
+                    </ul>
+                </li>
+                <li><a href="/contact">Contact</a></li>
+            </ul>
+            <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
+        </nav>
+
+        <div>
+            <form th:action="@{${buttonAction}}" th:method="${buttonMethod}">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" th:if="${buttonMethod == 'post'}" />
+                <button class="btn-getstarted" type="submit" th:text="${buttonText}">Action</button>
+            </form>
+        </div>
+    </div>
+</header>
+
+<main class="main">
+
+    <!-- Page Title -->
+    <div class="page-title" data-aos="fade">
+        <div class="heading">
+            <div class="container">
+                <div class="row d-flex justify-content-center text-center">
+                    <div class="col-lg-8">
+                        <h1>Event Registration</h1>
+                        <p class="mb-0">Register for <span th:text="${eventName}">Event Name</span> with SecurePass.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <nav class="breadcrumbs">
+            <div class="container">
+                <ol>
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/events">Events</a></li>
+                    <li class="current">Register</li>
+                </ol>
+            </div>
+        </nav>
+    </div><!-- End Page Title -->
+
+    <!-- Registration Form Section -->
+    <section id="register" class="register section">
+        <div class="container" data-aos="fade-up">
+            <div class="register-form">
+                <h2>Registration Form</h2>
+                <form th:action="@{/register}" th:object="${invitationFormDTO}" method="post">
+                    <input type="hidden" th:field="*{eventId}" />
+                    <div class="form-group">
+                        <label for="firstName">First Name</label>
+                        <input type="text" id="firstName" th:field="*{firstName}" required />
+                        <div class="error-message" th:if="${#fields.hasErrors('firstName')}" th:errors="*{firstName}"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="lastName">Last Name</label>
+                        <input type="text" id="lastName" th:field="*{lastName}" required />
+                        <div class="error-message" th:if="${#fields.hasErrors('lastName')}" th:errors="*{lastName}"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="phoneNumber">Phone Number</label>
+                        <input type="tel" id="phoneNumber" th:field="*{phoneNumber}" required />
+                        <div class="error-message" th:if="${#fields.hasErrors('phoneNumber')}" th:errors="*{phoneNumber}"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" th:field="*{email}" required />
+                        <div class="error-message" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
+                    </div>
+                    <button type="submit" class="btn-submit">Submit Registration</button>
+                </form>
+            </div>
+        </div>
+    </section><!-- /Registration Form Section -->
+
+</main>
+
+<footer id="footer" class="footer position-relative light-background">
+    <div class="container footer-top">
+        <div class="row gy-4">
+            <div class="col-lg-4 col-md-6 footer-about">
+                <a href="/" class="logo d-flex align-items-center">
+                    <span class="sitename">SecurePass</span>
+                </a>
+                <div class="footer-contact pt-3">
+                    <p>789 Event Avenue</p>
+                    <p>Los Angeles, CA 90001</p>
+                    <p class="mt-3"><strong>Phone:</strong> <span>+1 213 555 1234</span></p>
+                    <p><strong>Email:</strong> <span>info@securepass.com</span></p>
+                </div>
+                <div class="social-links d-flex mt-4">
+                    <a href="#"><i class="bi bi-twitter-x"></i></a>
+                    <a href="#"><i class="bi bi-facebook"></i></a>
+                    <a href="#"><i class="bi bi-instagram"></i></a>
+                    <a href="#"><i class="bi bi-linkedin"></i></a>
+                </div>
+            </div>
+            <div class="col-lg-2 col-md-3 footer-links">
+                <h4>Useful Links</h4>
+                <ul>
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/about">About Us</a></li>
+                    <li><a href="/events">Events</a></li>
+                    <li><a href="#">Terms of Service</a></li>
+                    <li><a href="#">Privacy Policy</a></li>
+                </ul>
+            </div>
+            <div class="col-lg-2 col-md-3 footer-links">
+                <h4>Our Solutions</h4>
+                <ul>
+                    <li><a href="#">Event Planning</a></li>
+                    <li><a href="#">Facial Recognition</a></li>
+                    <li><a href="#">Secure Authentication</a></li>
+                    <li><a href="#">Event Analytics</a></li>
+                </ul>
+            </div>
+            <div class="col-lg-4 col-md-12 footer-newsletter">
+                <h4>Stay Connected</h4>
+                <p>Subscribe for the latest updates on SecurePass features and upcoming events!</p>
+                <form action="/newsletter" method="post" class="php-email-form">
+                    <div class="newsletter-form"><input type="email" name="email"><input type="submit" value="Subscribe"></div>
+                    <div class="loading">Loading</div>
+                    <div class="error-message"></div>
+                    <div class="sent-message">Your subscription request has been sent. Thank you!</div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="container copyright text-center mt-4">
+        <p>© <span>Copyright</span> <strong class="px-1 sitename">SecurePass</strong> <span>All Rights Reserved</span></p>
+        <div class="credits">
+            Designed by <a href="https://bootstrapmade.com/">BootstrapMade</a> Distributed by <a href="https://themewagon.com">ThemeWagon</a>
+        </div>
+    </div>
+</footer>
+
+<!-- Scroll Top -->
+<a href="#" id="scroll-top" class="scroll-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
+
+<!-- Preloader -->
+<div id="preloader"></div>
+
+<!-- Vendor JS Files -->
+<script src="/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/vendor/php-email-form/validate.js"></script>
+<script src="/assets/vendor/aos/aos.js"></script>
+<script src="/assets/vendor/glightbox/js/glightbox.min.js"></script>
+<script src="/assets/vendor/purecounter/purecounter_vanilla.js"></script>
+<script src="/assets/vendor/swiper/swiper-bundle.min.js"></script>
+
+<!-- Main JS File -->
+<script src="/assets/js/main.js"></script>
+
+</body>
+
+</html>

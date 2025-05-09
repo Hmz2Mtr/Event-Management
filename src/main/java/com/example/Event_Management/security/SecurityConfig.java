@@ -56,7 +56,6 @@ public class SecurityConfig {
                                 "/error",
                                 "/h2-console/**",
                                 "/refreshToken/**",
-                                "/events/**",
                                 "/",
                                 "/signin/**",
                                 "/signup/**",
@@ -66,12 +65,15 @@ public class SecurityConfig {
                                 "/scan/**",
                                 "/eventDetails",
                                 "/createEvent/**",
-                                "/eventss/**",
+                                "/events/**",
                                 "/index2/**",
                                 "/recognize/**",
                                 "/store/**",
-                                "/logout").permitAll()
-                        .requestMatchers("GET", "/createEvent/**").permitAll() // Allow GET /events for all
+                                "/logout",
+                                "/register"
+                                ).permitAll()
+                        .requestMatchers("GET", "/register").permitAll() // Allow GET /events for all
+                        .requestMatchers("GET", "/createEvent/**","eventCreated").permitAll() // Allow GET /events for all
                         .requestMatchers("POST", "/createEvent/**").hasAnyAuthority("ADMIN", "SUPER_ADMIN") // Restrict POST /events
                         .anyRequest().authenticated()
                 )
@@ -85,7 +87,7 @@ public class SecurityConfig {
                 .formLogin(form -> form.disable()) // Disable default form login
                 .logout(logout -> logout.disable()) // Disable default logout handling
                 .csrf(csrf -> csrf
-                        .ignoringRequestMatchers("/signin/**","/signup/**") // Disable CSRF for /signin
+                        .ignoringRequestMatchers("/signin/**","/signup/**","/eventCreated") // Disable CSRF for /signin
                         .ignoringRequestMatchers("/h2-console/**")  // Only disable CSRF for H2 consol
                         .ignoringRequestMatchers("/logout")  // Only disable CSRF for H2 console
                         //.disable()
