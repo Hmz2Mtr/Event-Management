@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>Event Details - SecurePass</title>
+    <meta name="description" content="View details of an event with SecurePass, including sessions, speakers, and registration options.">
+    <meta name="keywords" content="event management, facial recognition, SecurePass, event details">
+
+    <!-- Favicons -->
+    <link href="/assets/img/favicon.png" rel="icon">
+    <link href="/assets/img/apple-touch-icon.png" rel="apple-touch-icon">
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com" rel="preconnect">
+    <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900&family=Raleway:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900&display=swap" rel="stylesheet">
+
+    <!-- Vendor CSS Files -->
+    <link href="/assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+    <link href="/assets/vendor/aos/aos.css" rel="stylesheet">
+    <link href="/assets/vendor/glightbox/css/glightbox.min.css" rel="stylesheet">
+    <link href="/assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
+
+    <!-- Main CSS File -->
+    <link href="/assets/css/main.css" rel="stylesheet">
+
+    <!-- Custom CSS for Event Details Page -->
+    <style>
+        .event-main {
+            width: 100%;
+            justify-content: center;
+            padding: 20px 0; /* Vertical spacing */
+        }
+        .event-banner {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        .event-container {
+            max-width: 1000px;
+            margin: 0 auto; /* Center horizontally */
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .event-title {
+            color: #333;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .event-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .event-info {
+            margin-bottom: 30px;
+        }
+        .event-info p {
+            font-size: 1rem;
+            color: #555;
+            margin-bottom: 10px;
+        }
+        .event-info strong {
+            color: #333;
+        }
+        .event-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        .event-table th, .event-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        .event-table th {
+            background-color: #f9f9f9;
+            font-weight: 600;
+            color: #555;
+        }
+        .event-table tbody tr:hover {
+            background-color: #f5f5f5;
+        }
+        .event-btn-primary {
+            background-color: #28a745;
+            border-color: #28a745;
+            padding: 8px 16px;
+            font-size: 0.9rem;
+            border-radius: 5px;
+        }
+        .event-btn-primary:hover {
+            background-color: #218838;
+            border-color: #218838;
+        }
+        .event-alert {
+            margin-top: 20px;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+
+<body class="event-details-page">
+<header id="header" class="header d-flex align-items-center sticky-top">
+    <div class="container-fluid container-xl position-relative d-flex align-items-center">
+        <a href="/" class="logo d-flex align-items-center me-auto">
+            <h1 class="sitename">SecurePass</h1>
+        </a>
+        <nav id="navmenu" class="navmenu">
+            <ul>
+                <li><a href="/">Home</a></li>
+                <li><a href="/about">About</a></li>
+                <li><a href="/events" class="active">Events</a></li>
+                <li th:if="${roles != null and (roles.contains('ADMIN') or roles.contains('SUPER_ADMIN'))}">
+                    <a href="/createEvent">Create Event</a>
+                </li>
+                <li><a href="/myEvents">My Events</a></li>
+                <li><a href="/pricing">Pricing</a></li>
+                <li class="dropdown"><a href="#"><span>Resources</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
+                    <ul>
+                        <li><a href="#">Event Planning Guide</a></li>
+                        <li class="dropdown"><a href="#"><span>Support</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
+                            <ul>
+                                <li><a href="#">FAQ</a></li>
+                                <li><a href="#">Troubleshooting</a></li>
+                                <li><a href="#">Contact Support</a></li>
+                            </ul>
+                        </li>
+                        <li><a href="#">Blog</a></li>
+                    </ul>
+                </li>
+                <li><a href="/contact">Contact</a></li>
+            </ul>
+            <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
+        </nav>
+        <div>
+            <form th:action="@{${buttonAction}}" th:method="${buttonMethod}">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" th:if="${buttonMethod == 'post'}" />
+                <button class="btn-getstarted" type="submit" th:text="${buttonText}">Action</button>
+            </form>
+        </div>
+    </div>
+</header>
+
+<main class="main event-main">
+    <section id="event-details" class="event-details section">
+        <div class="event-container" data-aos="fade-up" data-aos-delay="100">
+            <img src="https://images.unsplash.com/photo-1540575467063-178a50c2df87" class="img-fluid event-banner" alt="Event Details Banner">
+            <h1 class="event-title" th:if="${event != null and event.name != null}" th:text="${event.name}">Event Details</h1>
+            <h1 class="event-title" th:unless="${event != null and event.name != null}">Event Details</h1>
+            <div th:if="${error}" class="event-alert alert-danger" th:text="${error}"></div>
+            <div class="event-info">
+                <p><strong>Description:</strong>
+                    <span th:if="${event != null and event.description != null}" th:text="${event.description}">No description available</span>
+                    <span th:unless="${event != null and event.description != null}">No description available</span>
+                </p>
+                <p><strong>Event Type:</strong>
+                    <span th:if="${event != null and event.eventType != null}" th:text="${event.eventType}">Unknown</span>
+                    <span th:unless="${event != null and event.eventType != null}">Unknown</span>
+                </p>
+                <p><strong>Created By:</strong>
+                    <span th:if="${event != null and event.creatorName != null}" th:text="${event.creatorName}">Unknown</span>
+                    <span th:unless="${event != null and event.creatorName != null}">Unknown</span>
+                </p>
+            </div>
+            <h4>Sessions</h4>
+            <div class="table-responsive">
+                <table class="event-table">
+                    <thead>
+                    <tr>
+                        <th>Session Name</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Place</th>
+                        <th>City</th>
+                        <th>Guest Speakers</th>
+                        <th>Invitees</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="sess : ${event.sessions}" th:if="${event != null and event.sessions != null}">
+                        <td>
+                            <span th:if="${sess != null and sess.name != null}" th:text="${sess.name}">-</span>
+                            <span th:unless="${sess != null and sess.name != null}">-</span>
+                        </td>
+                        <td>
+                            <span th:if="${sess != null and sess.date != null}" th:text="${sess.date}">-</span>
+                            <span th:unless="${sess != null and sess.date != null}">-</span>
+                        </td>
+                        <td>
+                            <span th:if="${sess != null and sess.startTime != null and sess.endTime != null}" th:text="${sess.startTime} + ' - ' + ${sess.endTime}">-</span>
+                            <span th:unless="${sess != null and sess.startTime != null and sess.endTime != null}">-</span>
+                        </td>
+                        <td>
+                            <span th:if="${sess != null and sess.place != null and sess.place.name != null}" th:text="${sess.place.name}">-</span>
+                            <span th:unless="${sess != null and sess.place != null and sess.place.name != null}">-</span>
+                        </td>
+                        <td>
+                            <span th:if="${sess != null and sess.place != null and sess.place.ville != null and sess.place.ville.name != null}" th:text="${sess.place.ville.name}">-</span>
+                            <span th:unless="${sess != null and sess.place != null and sess.place.ville != null and sess.place.ville.name != null}">-</span>
+                        </td>
+                        <td>
+                                <span th:if="${sess != null and sess.guestSpeakers != null and !sess.guestSpeakers.isEmpty()}">
+                                    <span th:each="speaker, iterStat : ${sess.guestSpeakers}"
+                                          th:if="${speaker != null and speaker.speakerName != null}"
+                                          th:text="${speaker.speakerName} + (${iterStat.last} ? '' : ', ')">
+                                    </span>
+                                </span>
+                            <span th:unless="${sess != null and sess.guestSpeakers != null and !sess.guestSpeakers.isEmpty()}">-</span>
+                        </td>
+                        <td>
+                            <span th:if="${sess != null and sess.invitationSessions != null}" th:text="${sess.invitationSessions.size()}">0</span>
+                            <span th:unless="${sess != null and sess.invitationSessions != null}">0</span>
+                        </td>
+                    </tr>
+                    <tr th:if="${event == null or event.sessions == null or event.sessions.isEmpty()}">
+                        <td colspan="7" class="text-center">No sessions available.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="text-center mt-4">
+                <a th:href="@{/register(eventId=${event.id})}" class="event-btn-primary me-2" th:if="${isAuthenticated and event != null and event.id != null}">Register for Event</a>
+                <a href="/events" class="event-btn-primary">Back to All Events</a>
+            </div>
+        </div>
+    </section>
+</main>
+
+<footer id="footer" class="footer position-relative light-background">
+    <div class="container footer-top">
+        <div class="row gy-4">
+            <div class="col-lg-4 col-md-6 footer-about">
+                <a href="/" class="logo d-flex align-items-center">
+                    <span class="sitename">SecurePass</span>
+                </a>
+                <div class="footer-contact pt-3">
+                    <p>789 Event Avenue</p>
+                    <p>Los Angeles, CA 90001</p>
+                    <p class="mt-3"><strong>Phone:</strong> <span>+1 213 555 1234</span></p>
+                    <p><strong>Email:</strong> <span>info@securepass.com</span></p>
+                </div>
+                <div class="social-links d-flex mt-4">
+                    <a href="#"><i class="bi bi-twitter-x"></i></a>
+                    <a href="#"><i class="bi bi-facebook"></i></a>
+                    <a href="#"><i class="bi bi-instagram"></i></a>
+                    <a href="#"><i class="bi bi-linkedin"></i></a>
+                </div>
+            </div>
+            <div class="col-lg-2 col-md-3 footer-links">
+                <h4>Useful Links</h4>
+                <ul>
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/about">About Us</a></li>
+                    <li><a href="/events">Events</a></li>
+                    <li><a href="#">Terms of Service</a></li>
+                    <li><a href="#">Privacy Policy</a></li>
+                </ul>
+            </div>
+            <div class="col-lg-2 col-md-3 footer-links">
+                <h4>Our Solutions</h4>
+                <ul>
+                    <li><a href="#">Event Planning</a></li>
+                    <li><a href="#">Facial Recognition</a></li>
+                    <li><a href="#">Secure Authentication</a></li>
+                    <li><a href="#">Event Analytics</a></li>
+                </ul>
+            </div>
+            <div class="col-lg-4 col-md-12 footer-newsletter">
+                <h4>Stay Connected</h4>
+                <p>Subscribe for the latest updates on SecurePass features and upcoming events!</p>
+                <form action="/newsletter" method="post" class="php-email-form">
+                    <div class="newsletter-form"><input type="email" name="email"><input type="submit" value="Subscribe"></div>
+                    <div class="loading">Loading</div>
+                    <div class="error-message"></div>
+                    <div class="sent-message">Your subscription request has been sent. Thank you!</div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="container copyright text-center mt-4">
+        <p>© <span>Copyright</span> <strong class="px-1 sitename">SecurePass</strong> <span>All Rights Reserved</span></p>
+        <div class="credits">
+            Designed by <a href="https://bootstrapmade.com/">BootstrapMade</a> Distributed by <a href="https://themewagon.com">ThemeWagon</a>
+        </div>
+    </div>
+</footer>
+
+<!-- Scroll Top -->
+<a href="#" id="scroll-top" class="scroll-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
+
+<!-- Preloader -->
+<div id="preloader"></div>
+
+<!-- Vendor JS Files -->
+<script src="/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="/assets/vendor/php-email-form/validate.js"></script>
+<script src="/assets/vendor/aos/aos.js"></script>
+<script src="/assets/vendor/glightbox/js/glightbox.min.js"></script>
+<script src="/assets/vendor/purecounter/purecounter_vanilla.js"></script>
+<script src="/assets/vendor/swiper/swiper-bundle.min.js"></script>
+
+<!-- Main JS File -->
+<script src="/assets/js/main.js"></script>
+</body>
+</html>

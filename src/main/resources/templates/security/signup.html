@@ -1,25 +1,25 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Sign Up</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signup Form with Face Capture</title>
     <style>
         body {
             font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
             margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
+            background-color: #f0f0f0;
         }
         .container {
-            max-width: 400px;
-            margin: 50px auto;
+            background: white;
             padding: 20px;
-            background-color: white;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-        h1 {
-            text-align: center;
-            color: #333;
+            width: 400px;
         }
         .form-group {
             margin-bottom: 15px;
@@ -27,55 +27,515 @@
         label {
             display: block;
             margin-bottom: 5px;
-            color: #555;
         }
-        input[type="text"], input[type="password"] {
+        input {
             width: 100%;
             padding: 8px;
-            border: 1px solid #ddd;
+            border: 1px solid #ccc;
             border-radius: 4px;
-            box-sizing: border-box;
         }
         button {
             width: 100%;
             padding: 10px;
-            background-color: #007bff;
+            background-color: #28a745;
             color: white;
             border: none;
             border-radius: 4px;
             cursor: pointer;
         }
         button:hover {
-            background-color: #0056b3;
+            background-color: #218838;
+        }
+        #cameraPanel {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+            z-index: 1000;
+        }
+        #video {
+            width: 320px;
+            height: 240px;
+            background: black;
+        }
+        #canvas {
+            display: none;
+        }
+        #capturedImage {
+            width: 100px;
+            height: 100px;
+            margin-top: 10px;
+            display: none;
         }
         .error {
             color: red;
+            font-size: 12px;
+            display: none;
+        }
+        #status {
+            color: #333;
+            font-size: 14px;
+            margin-top: 10px;
             text-align: center;
-            margin-bottom: 15px;
+        }
+        #captureNow {
+            margin-top: 10px;
+            background-color: #007bff;
+        }
+        #captureNow:hover {
+            background-color: #0056b3;
         }
     </style>
 </head>
 <body>
-<!--<div th:replace="~{fragments/nav-bar :: nav-bar}"></div>-->
 <div class="container">
-    <h1>Sign Up</h1>
+    <h2>Signup</h2>
+    <br>
     <div th:if="${error}" class="error" th:text="${error}"></div>
-    <form th:action="@{/signup}" method="post">
+    <form id="signupForm" th:action="@{/signup}" method="post">
         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
         <div class="form-group">
             <label for="username">Username</label>
-            <input type="text" id="username" name="username" required />
+            <input type="text" id="username" name="username" required>
+            <span class="error" id="usernameError">Username must be at least 3 characters</span>
+        </div>
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" required>
+            <span class="error" id="emailError">Invalid email format</span>
         </div>
         <div class="form-group">
             <label for="password">Password</label>
-            <input type="password" id="password" name="password" required />
+            <input type="password" id="password" name="password" required>
+            <span class="error" id="passwordError">Password must be at least 6 characters</span>
         </div>
         <div class="form-group">
             <label for="confirmPassword">Confirm Password</label>
-            <input type="password" id="confirmPassword" name="confirmPassword" required />
+            <input type="password" id="confirmPassword" name="confirmPassword" required>
+            <span class="error" id="confirmPasswordError">Passwords do not match</span>
+        </div>
+        <div class="form-group">
+            <label>Profile Picture</label>
+            <button type="button" id="takePicture">Take Picture</button>
+            <img id="capturedImage" alt="Captured Image">
+            <input type="hidden" id="capturedImageInput" name="capturedImage">
         </div>
         <button type="submit">Sign Up</button>
     </form>
 </div>
+
+<div id="cameraPanel">
+    <video id="video" autoplay></video>
+    <canvas id="canvas"></canvas>
+    <p id="status">Initializing camera...</p>
+    <button id="captureNow">Capture Now</button>
+</div>
+
+<script src="https://docs.opencv.org/4.5.2/opencv.js"></script>
+<script>
+    const username = document.getElementById('username');
+    const email = document.getElementById('email');
+    const password = document.getElementById('password');
+    const confirmPassword = document.getElementById('confirmPassword');
+    const takePicture = document.getElementById('takePicture');
+    const signupForm = document.getElementById('signupForm');
+    const cameraPanel = document.getElementById('cameraPanel');
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const status = document.getElementById('status');
+    const capturedImage = document.getElementById('capturedImage');
+    const capturedImageInput = document.getElementById('capturedImageInput');
+    const captureNow = document.getElementById('captureNow');
+
+    let stream = null;
+    let faceCascade = null;
+    let eyeCascade = null;
+    let detectionCount = 0;
+    let detectionStartTime = null;
+    let autoCaptureTimer = null;
+    const DETECTION_THRESHOLD = 3;
+    const AUTO_CAPTURE_DELAY = 3000;
+    let isOpenCVReady = false;
+
+    cv['onRuntimeInitialized'] = () => {
+        isOpenCVReady = true;
+        console.log('OpenCV.js is ready');
+        status.textContent = 'OpenCV.js loaded. Click "Take Picture" to start.';
+    };
+
+    async function initFaceDetection() {
+        if (!isOpenCVReady) {
+            status.textContent = 'OpenCV.js is not ready yet. Please wait.';
+            console.error('OpenCV.js not initialized');
+            return false;
+        }
+
+        try {
+            const faceResponse = await fetch('https://raw.githubusercontent.com/opencv/opencv/master/data/haarcascades/haarcascade_frontalface_alt2.xml');
+            if (!faceResponse.ok) throw new Error('Failed to fetch Face Haar Cascade file');
+            const faceCascadeText = await faceResponse.text();
+
+            const eyeResponse = await fetch('https://raw.githubusercontent.com/opencv/opencv/master/data/haarcascades/haarcascade_eye_tree_eyeglasses.xml');
+            if (!eyeResponse.ok) throw new Error('Failed to fetch Eye Haar Cascade file');
+            const eyeCascadeText = await eyeResponse.text();
+
+            const FS = cv.FS;
+            FS.createDataFile('/', 'haarcascade_frontalface_alt2.xml', faceCascadeText, true, false);
+            FS.createDataFile('/', 'haarcascade_eye_tree_eyeglasses.xml', eyeCascadeText, true, false);
+
+            faceCascade = new cv.CascadeClassifier();
+            const faceLoaded = faceCascade.load('haarcascade_frontalface_alt2.xml');
+            if (!faceLoaded) throw new Error('Failed to load Face Haar Cascade classifier');
+
+            eyeCascade = new cv.CascadeClassifier();
+            const eyeLoaded = eyeCascade.load('haarcascade_eye_tree_eyeglasses.xml');
+            if (!eyeLoaded) throw new Error('Failed to load Eye Haar Cascade classifier');
+
+            status.textContent = 'Face and eye detectors ready. Look directly at the camera.';
+            console.log('Face and eye detectors initialized');
+            return true;
+        } catch (err) {
+            status.textContent = 'Failed to load detectors. Try a different device or refresh.';
+            console.error('Detector initialization error:', err);
+            return false;
+        }
+    }
+
+    async function startCamera() {
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({
+                video: {
+                    width: { ideal: 640 },
+                    height: { ideal: 480 },
+                    facingMode: 'user'
+                }
+            });
+            video.srcObject = stream;
+            video.onloadedmetadata = () => {
+                video.play();
+                cameraPanel.style.display = 'block';
+                detectionCount = 0;
+                detectionStartTime = null;
+                status.textContent = 'Camera active. Look directly at the camera with your full face visible in good lighting.';
+                detectFace();
+            };
+        } catch (err) {
+            status.textContent = 'Error: Cannot access camera. Ensure camera permission or try another device.';
+            console.error('Camera error:', err);
+        }
+    }
+
+    function checkLighting(image) {
+        const gray = new cv.Mat();
+        cv.cvtColor(image, gray, cv.COLOR_RGBA2GRAY);
+        const mean = cv.mean(gray)[0];
+        gray.delete();
+        return mean > 60 && mean < 190;
+    }
+
+    function preprocessImage(image) {
+        const gray = new cv.Mat();
+        cv.cvtColor(image, gray, cv.COLOR_RGBA2GRAY);
+        const equalized = new cv.Mat();
+        cv.equalizeHist(gray, equalized);
+        const sharpened = new cv.Mat();
+        const kernel = cv.matFromArray(3, 3, cv.CV_32F, [
+            0, -1, 0,
+            -1, 5, -1,
+            0, -1, 0
+        ]);
+        cv.filter2D(equalized, sharpened, cv.CV_8U, kernel);
+        kernel.delete();
+        gray.delete();
+        equalized.delete();
+        return sharpened;
+    }
+
+    function alignFace(image, eyes) {
+        if (eyes.size() < 2) return image;
+        const eye1 = eyes.get(0);
+        const eye2 = eyes.get(1);
+        const eyeCenter1 = { x: eye1.x + eye1.width / 2, y: eye1.y + eye1.height / 2 };
+        const eyeCenter2 = { x: eye2.x + eye2.width / 2, y: eye2.y + eye2.height / 2 };
+
+        const dx = eyeCenter2.x - eyeCenter1.x;
+        const dy = eyeCenter2.y - eyeCenter1.y;
+        const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+
+        const center = new cv.Point(image.cols / 2, image.rows / 2);
+        const rotMat = cv.getRotationMatrix2D(center, angle, 1.0);
+        const aligned = new cv.Mat();
+        cv.warpAffine(image, aligned, rotMat, image.size());
+        rotMat.delete();
+        return aligned;
+    }
+
+    async function detectFace() {
+        if (!isOpenCVReady || !faceCascade || !eyeCascade || !stream || !video.srcObject) {
+            status.textContent = 'Error: Camera or detectors not initialized. Try restarting.';
+            console.error('Initialization check failed:', {
+                isOpenCVReady,
+                faceCascade: !!faceCascade,
+                eyeCascade: !!eyeCascade,
+                stream: !!stream,
+                videoSrc: !!video.srcObject
+            });
+            return;
+        }
+
+        try {
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = video.videoWidth;
+            tempCanvas.height = video.videoHeight;
+            const ctx = tempCanvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, tempCanvas.width, tempCanvas.height);
+
+            let image = cv.imread(tempCanvas);
+            if (!checkLighting(image)) {
+                status.textContent = 'Lighting is too dim or too bright. Adjust your environment.';
+                console.log('Poor lighting detected');
+                clearTimeout(autoCaptureTimer);
+                autoCaptureTimer = null;
+                detectionCount = 0;
+                detectionStartTime = null;
+                image.delete();
+                tempCanvas.remove();
+                requestAnimationFrame(detectFace);
+                return;
+            }
+
+            const processed = preprocessImage(image);
+            const faces = new cv.RectVector();
+            faceCascade.detectMultiScale(processed, faces, 1.05, 5, 0);
+
+            if (faces.size() > 0) {
+                const face = faces.get(0);
+                if (face.width > 150 && face.height > 150) {
+                    const roiRect = new cv.Rect(
+                        face.x,
+                        face.y,
+                        face.width,
+                        face.height / 2
+                    );
+                    const roiGray = processed.roi(roiRect);
+                    const eyes = new cv.RectVector();
+                    eyeCascade.detectMultiScale(roiGray, eyes, 1.05, 4, 0);
+
+                    if (eyes.size() >= 2) {
+                        detectionCount++;
+                        if (!detectionStartTime) {
+                            detectionStartTime = Date.now();
+                        }
+
+                        const timeElapsed = Date.now() - detectionStartTime;
+                        const secondsRemaining = Math.max(0, Math.ceil((AUTO_CAPTURE_DELAY - timeElapsed) / 1000));
+
+                        if (detectionCount >= DETECTION_THRESHOLD) {
+                            status.textContent = `Clear face and eyes detected. Capturing in ${secondsRemaining}s...`;
+                            console.log(`Face and eyes detected, count: ${detectionCount}, face size: ${face.width}x${face.height}, eyes: ${eyes.size()}, seconds remaining: ${secondsRemaining}`);
+
+                            if (!autoCaptureTimer && timeElapsed < AUTO_CAPTURE_DELAY) {
+                                autoCaptureTimer = setTimeout(() => {
+                                    const alignedImage = alignFace(image, eyes);
+                                    captureImage(alignedImage, face);
+                                    alignedImage.delete();
+                                }, AUTO_CAPTURE_DELAY - timeElapsed);
+                            } else if (timeElapsed >= AUTO_CAPTURE_DELAY) {
+                                const alignedImage = alignFace(image, eyes);
+                                captureImage(alignedImage, face);
+                                alignedImage.delete();
+                            }
+                        } else {
+                            status.textContent = `Detecting face and eyes (${detectionCount}/${DETECTION_THRESHOLD})...`;
+                            console.log(`Building detection confidence, count: ${detectionCount}`);
+                        }
+                    } else {
+                        clearTimeout(autoCaptureTimer);
+                        autoCaptureTimer = null;
+                        detectionCount = 0;
+                        detectionStartTime = null;
+                        status.textContent = 'Eyes not detected. Look directly at the camera.';
+                        console.log('Eyes not detected:', eyes.size());
+                    }
+                    roiGray.delete();
+                    eyes.delete();
+                } else {
+                    clearTimeout(autoCaptureTimer);
+                    autoCaptureTimer = null;
+                    detectionCount = 0;
+                    detectionStartTime = null;
+                    status.textContent = 'Face not clear. Move closer or improve lighting.';
+                    console.log('Face too small:', face.width, face.height);
+                }
+            } else {
+                clearTimeout(autoCaptureTimer);
+                autoCaptureTimer = null;
+                detectionCount = 0;
+                detectionStartTime = null;
+                status.textContent = 'No face detected. Show your full face and look at the camera.';
+                console.log('No face detected');
+            }
+
+            image.delete();
+            processed.delete();
+            faces.delete();
+            tempCanvas.remove();
+            requestAnimationFrame(detectFace);
+        } catch (err) {
+            status.textContent = 'Error during detection. Try clicking "Capture Now".';
+            console.error('Detection error:', err);
+            requestAnimationFrame(detectFace);
+        }
+    }
+
+    function captureImage(alignedImage, face) {
+        try {
+            canvas.width = face.width * 1.5;
+            canvas.height = face.height * 1.5;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(
+                video,
+                face.x - face.width * 0.25,
+                face.y - face.height * 0.25,
+                face.width * 1.5,
+                face.height * 1.5,
+                0,
+                0,
+                canvas.width,
+                canvas.height
+            );
+            const imageDataUrl = canvas.toDataURL('image/png', 1.0);
+            capturedImage.src = imageDataUrl;
+            capturedImageInput.value = imageDataUrl; // Set hidden input value
+            capturedImage.style.display = 'block';
+            status.textContent = 'Image captured successfully!';
+            stopCamera();
+        } catch (err) {
+            status.textContent = 'Error capturing image. Try again or use a different device.';
+            console.error('Capture error:', err);
+        }
+    }
+
+    function stopCamera() {
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+            stream = null;
+            video.srcObject = null;
+        }
+        clearTimeout(autoCaptureTimer);
+        autoCaptureTimer = null;
+        cameraPanel.style.display = 'none';
+        status.textContent = '';
+    }
+
+    function validateForm() {
+        let isValid = true;
+
+        if (username.value.length < 3) {
+            document.getElementById('usernameError').style.display = 'block';
+            isValid = false;
+        } else {
+            document.getElementById('usernameError').style.display = 'none';
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email.value)) {
+            document.getElementById('emailError').style.display = 'block';
+            isValid = false;
+        } else {
+            document.getElementById('emailError').style.display = 'none';
+        }
+
+        if (password.value.length < 6) {
+            document.getElementById('passwordError').style.display = 'block';
+            isValid = false;
+        } else {
+            document.getElementById('passwordError').style.display = 'none';
+        }
+
+        if (password.value !== confirmPassword.value) {
+            document.getElementById('confirmPasswordError').style.display = 'block';
+            isValid = false;
+        } else {
+            document.getElementById('confirmPasswordError').style.display = 'none';
+        }
+
+        if (!capturedImage.src.includes('image/png')) {
+            alert('Please capture a profile picture');
+            isValid = false;
+        }
+
+        console.log('Validation result:', isValid); // Debug: Log validation outcome
+        return isValid;
+    }
+
+    takePicture.addEventListener('click', async () => {
+        if (!isOpenCVReady) {
+            status.textContent = 'OpenCV.js is still loading. Please wait.';
+            return;
+        }
+        if (!faceCascade || !eyeCascade) {
+            const initialized = await initFaceDetection();
+            if (!initialized) return;
+        }
+        startCamera();
+    });
+
+    captureNow.addEventListener('click', () => {
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = video.videoWidth;
+        tempCanvas.height = video.videoHeight;
+        const ctx = tempCanvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, tempCanvas.width, tempCanvas.height);
+        const image = cv.imread(tempCanvas);
+        const processed = preprocessImage(image);
+        const faces = new cv.RectVector();
+        faceCascade.detectMultiScale(processed, faces, 1.05, 5, 0);
+        if (faces.size() > 0) {
+            const face = faces.get(0);
+            const roiRect = new cv.Rect(face.x, face.y, face.width, face.height / 2);
+            const roiGray = processed.roi(roiRect);
+            const eyes = new cv.RectVector();
+            eyeCascade.detectMultiScale(roiGray, eyes, 1.05, 4, 0);
+            const alignedImage = alignFace(image, eyes);
+            captureImage(alignedImage, face);
+            alignedImage.delete();
+            roiGray.delete();
+            eyes.delete();
+        } else {
+            captureImage(image, {
+                x: 0,
+                y: 0,
+                width: video.videoWidth,
+                height: video.videoHeight
+            });
+        }
+        image.delete();
+        processed.delete();
+        faces.delete();
+        tempCanvas.remove();
+    });
+
+    signupForm.addEventListener('submit', (e) => {
+        if (!validateForm()) {
+            e.preventDefault(); // Prevent submission if validation fails
+            console.log('Form validation failed');
+        } else {
+            console.log('Form validated, submitting:', {
+                username: username.value,
+                email: email.value,
+                password: password.value,
+                capturedImage: capturedImageInput.value
+            });
+        }
+    });
+
+    window.addEventListener('unload', stopCamera);
+</script>
 </body>
 </html>

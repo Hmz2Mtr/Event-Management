@@ -48,9 +48,9 @@ public class EventManagementApplication implements CommandLineRunner{
 			accountService.addNewRole(new AppRole(null, "USER"));
 
 			// Add users
-			accountService.addNewUser(new AppUser(null, "ana", "1234", new ArrayList<>()));
-			accountService.addNewUser(new AppUser(null, "admin", "1234", new ArrayList<>()));
-			accountService.addNewUser(new AppUser(null, "user1", "1234", new ArrayList<>()));
+			accountService.addNewUser(new AppUser(null, "ana", "1234",new ArrayList<>(), null, "ana.ana@gmail.com"));
+			accountService.addNewUser(new AppUser(null, "admin", "1234", new ArrayList<>(), null,"admin.ana@gmail.com"));
+			accountService.addNewUser(new AppUser(null, "user1", "1234", new ArrayList<>(), null,"user1.ana@gmail.com"));
 
 			accountService.addRoleToUser("ana", "SUPER_ADMIN");
 			accountService.addRoleToUser("ana", "ADMIN");

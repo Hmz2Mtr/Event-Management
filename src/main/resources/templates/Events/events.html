@@ -107,24 +107,17 @@
       <ul>
         <li><a href="/">Home</a></li>
         <li><a href="/about">About</a></li>
-        <li><a href="/events" class="active">Events</a></li>
+        <li><a href="/events">Events</a></li>
         <li th:if="${roles != null and (roles.contains('ADMIN') or roles.contains('SUPER_ADMIN'))}">
           <a href="/createEvent">Create Event</a>
         </li>
-        <li><a href="/pricing">Pricing</a></li>
-        <li class="dropdown"><a href="#"><span>Resources</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
+        <li th:if="${roles != null and (roles.contains('ADMIN') or roles.contains('SUPER_ADMIN'))}" class="dropdown">
+          <a href="#"><span>Admin Resources</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
           <ul>
-            <li><a href="#">Event Planning Guide</a></li>
-            <li class="dropdown"><a href="#"><span>Support</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
-              <ul>
-                <li><a href="#">FAQ</a></li>
-                <li><a href="#">Troubleshooting</a></li>
-                <li><a href="#">Contact Support</a></li>
-              </ul>
-            </li>
-            <li><a href="#">Blog</a></li>
+            <li><a href="/MyEvents">My Events</a></li>
           </ul>
         </li>
+        <li><a href="/pricing">Pricing</a></li>
         <li><a href="/contact">Contact</a></li>
       </ul>
       <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
@@ -170,10 +163,10 @@
         <div class="col-md-6 col-lg-4 d-flex align-items-stretch mb-4" th:each="event : ${events}">
           <div class="card">
             <div class="card-img">
-              <img th:src="${event.imageBase64 != null} ? @{'data:image/jpg;base64,' + ${event.imageBase64}} : 'https://images.unsplash.com/photo-1540575467063-178a50c2df87'" class="img-fluid uniform-image" th:alt="${event.name} + ' Image'"/>
+              <img th:src="${event.imageBase64 != null} ? 'data:image/jpg;base64,' + ${event.imageBase64} : 'https://t4.ftcdn.net/jpg/02/16/94/65/360_F_216946587_rmug8FCNgpDCPQlstiCJ0CAXJ2sqPRU7.jpg'"  onerror="this.src='https://t4.ftcdn.net/jpg/02/16/94/65/360_F_216946587_rmug8FCNgpDCPQlstiCJ0CAXJ2sqPRU7.jpg'"/>
             </div>
             <div class="card-body">
-              <h3 class="card-title"><a th:href="@{'/event/' + ${event.id}}" th:text="${event.name}">Event Name</a></h3>
+              <h3 class="card-title"><a th:href="@{'/eventDetails/' + ${event.id}}" th:text="${event.name}">Event Name</a></h3>
               <p class="event-details" th:if="${event.sessions != null and not #lists.isEmpty(event.sessions)}">
                 <i class="bi bi-calendar"></i> <span th:text="${event.sessions[0].date != null} ? ${#temporals.format(event.sessions[0].date, 'MMM dd, yyyy')} : 'TBD'">TBD</span> |
                 <span th:text="${event.sessions[0].startTime != null} ? ${#temporals.format(event.sessions[0].startTime, 'HH:mm')} : 'TBD'">TBD</span> -

@@ -11,8 +11,8 @@ import com.example.Event_Management.security.services.AccountService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.ValidationException;
 import lombok.Data;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -118,11 +118,14 @@ public class AccountRestController {
         addAuthButtonAttributes(model, userInfo);
         return "security/signup";
     }
+
     @PostMapping(value = "/signup")
     public ResponseEntity<?> signup(
             @RequestParam("username") String username,
             @RequestParam("password") String password,
             @RequestParam("confirmPassword") String confirmPassword,
+            @RequestParam(value = "capturedImage") String profilePicture,
+            @RequestParam(value = "email") String email,
             Model model) {
         logger.debug("Received signup request: username={}", username);
 
@@ -147,10 +150,23 @@ public class AccountRestController {
                 headers.setLocation(URI.create("/signup?error=Username%20already%20taken"));
                 return ResponseEntity.status(302).headers(headers).build();
             }
+
+            // Validate image (optional: ensure it's a valid base64 string)
+            if (profilePicture == null || !profilePicture.startsWith("data:image/png;base64,")) {
+                throw new ValidationException("Valid PNG image is required");
+            }
+
+            // Validate email (optional: ensure it's a valid email format)
+            if (email != null && !email.matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
+                throw new ValidationException("Valid email is required");
+            }
+
             // Create new user
             AppUser newUser = new AppUser();
             newUser.setUsername(username);
             newUser.setPassword(password);
+            newUser.setProfilePicture(profilePicture);
+            newUser.setEmail(email);
             accountService.addNewUser(newUser);
 
             // Assign default USER role
@@ -203,18 +219,6 @@ public class AccountRestController {
         return "Home/index";
     }
 
-//    @GetMapping("/events")
-//    public String events(Model model, HttpServletRequest request) {
-//        logger.debug("Processing home page request");
-//
-//        // Decode JWT using JwtTokenDecoder
-//        Map<String, Object> userInfo = jwtTokenDecoder.decodeToken(request);
-//        model.addAttribute("username", userInfo.get("username"));
-//        model.addAttribute("roles", userInfo.get("roles"));
-//
-//        addAuthButtonAttributes(model, userInfo);
-//        return "Home/events";
-//    }
 
     @GetMapping("/about")
     public String adbout(Model model, HttpServletRequest request) {
@@ -239,8 +243,11 @@ public class AccountRestController {
         return "Home/contact";
     }
 
-    @GetMapping("/scan")
-    public String scan(Model model, HttpServletRequest request) {
+
+
+
+    @GetMapping("/takepic")
+    public String takepic(Model model, HttpServletRequest request) {
         logger.debug("Processing home page request");
 
         // Decode JWT using JwtTokenDecoder
@@ -249,8 +256,9 @@ public class AccountRestController {
         model.addAttribute("roles", userInfo.get("roles"));
 
         addAuthButtonAttributes(model, userInfo);
-        return "Home/scan";
+        return "takepic";
     }
+
 
     @GetMapping("/pricing")
     public String pricing(Model model, HttpServletRequest request) {

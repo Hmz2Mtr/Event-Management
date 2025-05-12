@@ -23,4 +23,17 @@ public class AppUser {
     private String password;
     @ManyToMany(fetch = FetchType.EAGER)
     private Collection<AppRole> appRoles= new ArrayList<>();
+
+    @Column(columnDefinition = "TEXT", nullable = true)
+    private String profilePicture; // Base64-encoded image
+
+    private String email;
+
+    public AppUser(Long id, String username, String password, Collection<AppRole> appRoles, String email) {
+        this.id = id;
+        this.username = username;
+        this.password = password;
+        this.appRoles = appRoles;
+        this.email = email;
+    }
 }
