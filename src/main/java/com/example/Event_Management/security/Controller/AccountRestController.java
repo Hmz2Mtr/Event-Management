@@ -126,6 +126,9 @@ public class AccountRestController {
             @RequestParam("confirmPassword") String confirmPassword,
             @RequestParam(value = "capturedImage") String profilePicture,
             @RequestParam(value = "email") String email,
+            @RequestParam(value = "firstName") String firstName,
+            @RequestParam(value = "lastName") String lastName,
+            @RequestParam(value = "numberPhone") String numberPhone,
             Model model) {
         logger.debug("Received signup request: username={}", username);
 
@@ -160,6 +163,18 @@ public class AccountRestController {
             if (email != null && !email.matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
                 throw new ValidationException("Valid email is required");
             }
+            // Validate first name (optional: ensure it's not empty)
+            if (firstName != null && firstName.isEmpty()) {
+                throw new ValidationException("First name is required");
+            }
+            // Validate last name (optional: ensure it's not empty)
+            if (lastName != null && lastName.isEmpty()) {
+                throw new ValidationException("Last name is required");
+            }
+            // Validate phone number (optional: ensure it's not empty)
+            if (numberPhone != null && numberPhone.isEmpty()) {
+                throw new ValidationException("Phone number is required");
+            }
 
             // Create new user
             AppUser newUser = new AppUser();
@@ -167,6 +182,9 @@ public class AccountRestController {
             newUser.setPassword(password);
             newUser.setProfilePicture(profilePicture);
             newUser.setEmail(email);
+            newUser.setFirstName(firstName);
+            newUser.setLastName(lastName);
+            newUser.setNumberPhone(numberPhone);
             accountService.addNewUser(newUser);
 
             // Assign default USER role
@@ -301,10 +319,7 @@ public class AccountRestController {
 
 
 
-    @GetMapping(path = "/profile")
-    public AppUser profile(Principal principal){
-        return accountService.loadUserByUsername(principal.getName());
-    }
+
 
 
 

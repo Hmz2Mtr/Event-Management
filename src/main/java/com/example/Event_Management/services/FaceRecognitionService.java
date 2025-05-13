@@ -11,7 +11,7 @@ public class FaceRecognitionService {
 
 //    private final Net yoloNet;
 //    private final Net faceNet;
-
+//
 //    public FaceRecognitionService() {
 //        // Load YOLOv8-Face model
 //        yoloNet = Dnn.readNetFromONNX("path/to/yolov8-face.onnx");

@@ -6,42 +6,59 @@
     <title>Signup Form with Face Capture</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Arial, sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
             margin: 0;
-            background-color: #f0f0f0;
-        }
+            background-color: #f0f0f0;        }
         .container {
             background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            width: 400px;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            width: 500px;
         }
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        .grid-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
         }
         label {
             display: block;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
         }
         input {
             width: 100%;
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            box-sizing: border-box;
+        }
+        input:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 8px rgba(0, 123, 255, 0.3);
         }
         button {
             width: 100%;
-            padding: 10px;
+            padding: 12px;
             background-color: #28a745;
             color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: 6px;
             cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
         }
         button:hover {
             background-color: #218838;
@@ -54,14 +71,15 @@
             transform: translate(-50%, -50%);
             background: white;
             padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
             z-index: 1000;
         }
         #video {
             width: 320px;
             height: 240px;
             background: black;
+            border-radius: 8px;
         }
         #canvas {
             display: none;
@@ -71,10 +89,12 @@
             height: 100px;
             margin-top: 10px;
             display: none;
+            border-radius: 8px;
         }
         .error {
-            color: red;
+            color: #dc3545;
             font-size: 12px;
+            margin-top: 5px;
             display: none;
         }
         #status {
@@ -90,19 +110,50 @@
         #captureNow:hover {
             background-color: #0056b3;
         }
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        @media (max-width: 600px) {
+            .container {
+                width: 90%;
+            }
+            .grid-group {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
 <div class="container">
     <h2>Signup</h2>
-    <br>
     <div th:if="${error}" class="error" th:text="${error}"></div>
     <form id="signupForm" th:action="@{/signup}" method="post">
         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-        <div class="form-group">
-            <label for="username">Username</label>
-            <input type="text" id="username" name="username" required>
-            <span class="error" id="usernameError">Username must be at least 3 characters</span>
+        <div class="grid-group">
+            <div class="form-group">
+                <label for="firstname">First Name</label>
+                <input type="text" id="firstname" name="firstName" required>
+                <span class="error" id="firstnameError">First name must be at least 2 characters</span>
+            </div>
+            <div class="form-group">
+                <label for="lastname">Last Name</label>
+                <input type="text" id="lastname" name="lastName" required>
+                <span class="error" id="lastnameError">Last name must be at least 2 characters</span>
+            </div>
+        </div>
+        <div class="grid-group">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required>
+                <span class="error" id="usernameError">Username must be at least 3 characters</span>
+            </div>
+            <div class="form-group">
+                <label for="phone">Phone Number</label>
+                <input type="tel" id="phone" name="numberPhone" required>
+                <span class="error" id="phoneError">Invalid phone number format</span>
+            </div>
         </div>
         <div class="form-group">
             <label for="email">Email</label>
@@ -139,6 +190,9 @@
 <script src="https://docs.opencv.org/4.5.2/opencv.js"></script>
 <script>
     const username = document.getElementById('username');
+    const firstname = document.getElementById('firstname');
+    const lastname = document.getElementById('lastname');
+    const phone = document.getElementById('phone');
     const email = document.getElementById('email');
     const password = document.getElementById('password');
     const confirmPassword = document.getElementById('confirmPassword');
@@ -411,7 +465,7 @@
             );
             const imageDataUrl = canvas.toDataURL('image/png', 1.0);
             capturedImage.src = imageDataUrl;
-            capturedImageInput.value = imageDataUrl; // Set hidden input value
+            capturedImageInput.value = imageDataUrl;
             capturedImage.style.display = 'block';
             status.textContent = 'Image captured successfully!';
             stopCamera();
@@ -436,11 +490,33 @@
     function validateForm() {
         let isValid = true;
 
+        if (firstname.value.length < 2) {
+            document.getElementById('firstnameError').style.display = 'block';
+            isValid = false;
+        } else {
+            document.getElementById('firstnameError').style.display = 'none';
+        }
+
+        if (lastname.value.length < 2) {
+            document.getElementById('lastnameError').style.display = 'block';
+            isValid = false;
+        } else {
+            document.getElementById('lastnameError').style.display = 'none';
+        }
+
         if (username.value.length < 3) {
             document.getElementById('usernameError').style.display = 'block';
             isValid = false;
         } else {
             document.getElementById('usernameError').style.display = 'none';
+        }
+
+        const phoneRegex = /^\+?[\d\s-]{10,}$/;
+        if (!phoneRegex.test(phone.value)) {
+            document.getElementById('phoneError').style.display = 'block';
+            isValid = false;
+        } else {
+            document.getElementById('phoneError').style.display = 'none';
         }
 
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -470,7 +546,7 @@
             isValid = false;
         }
 
-        console.log('Validation result:', isValid); // Debug: Log validation outcome
+        console.log('Validation result:', isValid);
         return isValid;
     }
 
@@ -523,11 +599,14 @@
 
     signupForm.addEventListener('submit', (e) => {
         if (!validateForm()) {
-            e.preventDefault(); // Prevent submission if validation fails
+            e.preventDefault();
             console.log('Form validation failed');
         } else {
             console.log('Form validated, submitting:', {
+                firstname: firstname.value,
+                lastname: lastname.value,
                 username: username.value,
+                phone: phone.value,
                 email: email.value,
                 password: password.value,
                 capturedImage: capturedImageInput.value

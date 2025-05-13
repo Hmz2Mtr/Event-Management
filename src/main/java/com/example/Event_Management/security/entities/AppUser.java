@@ -29,6 +29,10 @@ public class AppUser {
 
     private String email;
 
+    private String firstName;
+    private String lastName;
+    private String numberPhone;
+
     public AppUser(Long id, String username, String password, Collection<AppRole> appRoles, String email) {
         this.id = id;
         this.username = username;

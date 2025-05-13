@@ -1,12 +1,11 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-
 <head>
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
-  <title>Events - SecurePass</title>
-  <meta name="description" content="Explore upcoming events with SecurePass, featuring secure facial recognition for attendee verification and seamless event management.">
-  <meta name="keywords" content="event management, facial recognition, SecurePass, events">
+  <title>My Registrations - SecurePass</title>
+  <meta name="description" content="View your registered sessions with SecurePass.">
+  <meta name="keywords" content="registrations, event management, SecurePass">
 
   <!-- Favicons -->
   <link href="/assets/img/favicon.png" rel="icon">
@@ -27,71 +26,8 @@
   <!-- Main CSS File -->
   <link href="/assets/css/main.css" rel="stylesheet">
 
-  <!-- Custom CSS for Smaller, Enhanced Cards -->
+  <!-- Custom CSS -->
   <style>
-    .uniform-image {
-      width: 100%;
-      height: 180px;
-      object-fit: cover;
-      border-top-left-radius: 8px;
-      border-top-right-radius: 8px;
-    }
-    .card {
-      border: none;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      transition: transform 0.3s, box-shadow 0.3s;
-      border-radius: 8px;
-      overflow: hidden;
-      max-width: 320px;
-      margin: auto;
-    }
-    .card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
-    }
-    .card-body {
-      padding: 15px;
-    }
-    .card-title {
-      font-size: 1.25rem;
-      margin-bottom: 10px;
-      font-weight: 600;
-    }
-    .event-details {
-      font-size: 0.85rem;
-      color: #666;
-      margin-bottom: 5px;
-    }
-    .card-text {
-      font-size: 0.9rem;
-      color: #444;
-      margin-bottom: 15px;
-    }
-    .btn-register {
-      background-color: #28a745;
-      border-color: #28a745;
-      color: white;
-      padding: 6px 12px;
-      font-size: 0.9rem;
-      border-radius: 5px;
-      width: 100%;
-      text-align: center;
-    }
-    .btn-register:hover {
-      background-color: #218838;
-      border-color: #218838;
-    }
-    .no-events {
-      text-align: center;
-      font-size: 1.1rem;
-      color: #666;
-      margin-top: 20px;
-    }
-    .speakers-list {
-      font-size: 0.85rem;
-      color: #666;
-      margin-bottom: 10px;
-    }
     .profile-main {
       width: 100%;
       display: block;
@@ -123,14 +59,6 @@
       object-fit: cover;
       margin: 0 auto 20px;
       display: block;
-      border: 3px solid #28a745; /* Green circle border */
-    }
-    .profile-link {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      margin-top: 15px;
-      margin-left: 20px; /* Space between profile and sign-in button */
     }
     .profile-nav {
       list-style: none;
@@ -163,25 +91,23 @@
       text-align: center;
       margin-bottom: 30px;
     }
-    .profile-form {
-      max-width: 500px;
-      margin: 0 auto;
-    }
-    .profile-form .form-group {
-      margin-bottom: 15px;
-    }
-    .profile-form label {
-      display: block;
-      font-weight: 600;
-      color: #333;
-      margin-bottom: 5px;
-    }
-    .profile-form input {
+    .profile-table {
       width: 100%;
-      padding: 8px;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-      font-size: 1rem;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+    .profile-table th, .profile-table td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+    .profile-table th {
+      background-color: #f9f9f9;
+      font-weight: 600;
+      color: #555;
+    }
+    .profile-table tbody tr:hover {
+      background-color: #f5f5f5;
     }
     .profile-btn-primary {
       background-color: #28a745;
@@ -215,18 +141,11 @@
       .profile-content {
         padding-left: 0;
       }
-      .profile-link {
-        margin-right: 5px; /* Reduced space for mobile */
-      }
-      .profile-picture {
-        width: 30px; /* Smaller size for mobile */
-        height: 30px;
-      }
     }
   </style>
 </head>
 
-<body class="password-page">
+<body class="registrations-page">
 <header id="header" class="header d-flex align-items-center sticky-top">
   <div class="container-fluid container-xl position-relative d-flex align-items-center">
     <a href="/" class="logo d-flex align-items-center me-auto">
@@ -238,7 +157,8 @@
         <li><a href="/about">About</a></li>
         <li><a href="/events">Events</a></li>
         <li th:if="${roles != null and (roles.contains('ADMIN') or roles.contains('SUPER_ADMIN'))}">
-          <a href="/createEvent">Create Event</a></li>
+          <a href="/createEvent">Create Event</a>
+        </li>
         <li th:if="${roles != null and (roles.contains('ADMIN') or roles.contains('SUPER_ADMIN'))}" class="dropdown">
           <a href="#"><span>Admin Resources</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
           <ul>
@@ -261,71 +181,54 @@
         <img th:if="${user != null and user.profilePicture != null}" th:src="${user.profilePicture}" class="profile-picture" alt="Profile Picture" style="width: 30px; height: 30px;">
         <img th:unless="${user != null and user.profilePicture != null}" th:src="'https://www.pngkey.com/png/detail/115-1150152_default-profile-picture-avatar-png-green.png'" class="profile-picture" alt="Profile Picture" style="width: 40px; height: 40px;">
       </a>
-      <a th:if="${roles == null}" href="/signin">
+      <a th:if="${user == null}" href="/signin">
         <img th:src="'https://www.pngkey.com/png/detail/115-1150152_default-profile-picture-avatar-png-green.png'" class="profile-picture" alt="Profile Picture" style="width: 40px; height: 40px;">
       </a>
     </div>
   </div>
 </header>
 
-<main class="main">
-
-  <!-- Page Title -->
-  <div class="page-title" data-aos="fade">
-    <div class="heading">
-      <div class="container">
-        <div class="row d-flex justify-content-center text-center">
-          <div class="col-lg-8">
-            <h1>Upcoming Events</h1>
-            <p class="mb-0">Explore and register for upcoming events with SecurePass, featuring secure facial recognition for attendee verification.</p>
+<main class="main profile-main">
+  <section id="registrations" class="registrations section">
+    <div class="profile-container" data-aos="fade-up" data-aos-delay="100">
+      <!-- Sidebar -->
+      <div class="profile-sidebar">
+        <img th:src="${user.profilePicture != null} ? (${user.profilePicture}) : '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'" class="profile-picture" alt="Profile Picture">
+        <ul class="profile-nav">
+          <li><a class="active" href="/registrations">My Registrations</a></li>
+          <li><a href="/infos">My Infos</a></li>
+          <li><a href="/password">Change My Password</a></li>
+        </ul>
+      </div>
+      <!-- Main Content -->
+      <div class="profile-content">
+        <h1 class="profile-title">My Registrations</h1>
+        <div th:if="${sessions != null and !sessions.isEmpty()}">
+          <div class="table-responsive">
+            <table class="profile-table">
+              <thead>
+              <tr>
+                <th>Event Name</th>
+                <th>Session Name</th>
+                <th>Invitee</th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr th:each="session : ${sessions}">
+                <td th:text="${session.eventName != null} ? ${session.eventName} : '-'">-</td>
+                <td th:text="${session.sessionName != null} ? ${session.sessionName} : '-'">-</td>
+                <td th:text="${session.invitee != null} ? ${session.invitee} : '-'">-</td>
+              </tr>
+              </tbody>
+            </table>
           </div>
+        </div>
+        <div th:unless="${sessions != null and !sessions.isEmpty()}" class="text-center">
+          <p>No registered sessions found.</p>
         </div>
       </div>
     </div>
-    <nav class="breadcrumbs">
-      <div class="container">
-        <ol>
-          <li><a href="/">Home</a></li>
-          <li class="current">Events</li>
-        </ol>
-      </div>
-    </nav>
-  </div><!-- End Page Title -->
-
-  <!-- Events Section -->
-  <section id="events" class="events section">
-    <div class="container" data-aos="fade-up">
-      <div class="row" th:if="${events != null and not #lists.isEmpty(events)}">
-        <div class="col-md-6 col-lg-4 d-flex align-items-stretch mb-4" th:each="event : ${events}">
-          <div class="card">
-            <div class="card-img">
-              <img th:src="${event.imageBase64 != null} ? 'data:image/jpg;base64,' + ${event.imageBase64} : 'https://t4.ftcdn.net/jpg/02/16/94/65/360_F_216946587_rmug8FCNgpDCPQlstiCJ0CAXJ2sqPRU7.jpg'"  onerror="this.src='https://t4.ftcdn.net/jpg/02/16/94/65/360_F_216946587_rmug8FCNgpDCPQlstiCJ0CAXJ2sqPRU7.jpg'"/>
-            </div>
-            <div class="card-body">
-              <h3 class="card-title"><a th:href="@{'/eventDetails/' + ${event.id}}" th:text="${event.name}">Event Name</a></h3>
-              <p class="event-details" th:if="${event.sessions != null and not #lists.isEmpty(event.sessions)}">
-                <i class="bi bi-calendar"></i> <span th:text="${event.sessions[0].date != null} ? ${#temporals.format(event.sessions[0].date, 'MMM dd, yyyy')} : 'TBD'">TBD</span> |
-                <span th:text="${event.sessions[0].startTime != null} ? ${#temporals.format(event.sessions[0].startTime, 'HH:mm')} : 'TBD'">TBD</span> -
-                <span th:text="${event.sessions[0].endTime != null} ? ${#temporals.format(event.sessions[0].endTime, 'HH:mm')} : 'TBD'">TBD</span>
-              </p>
-              <p class="event-details" th:if="${event.sessions != null and not #lists.isEmpty(event.sessions)}">
-                <i class="bi bi-geo-alt"></i> <span th:text="${event.sessions[0].place != null and event.sessions[0].place.ville != null} ? ${event.sessions[0].place.ville.name} + ', ' + ${event.sessions[0].place.name} : 'TBD'">TBD</span>
-              </p>
-              <p class="speakers-list" th:if="${event.sessions != null and not #lists.isEmpty(event.sessions) and event.sessions[0].guestSpeakers != null and not #lists.isEmpty(event.sessions[0].guestSpeakers)}">
-                <i class="bi bi-person"></i> Speakers: <span th:each="speaker, iterStat : ${event.sessions[0].guestSpeakers}" th:text="${speaker.speakerName} + ${iterStat.last ? '' : ', '}">TBD</span>
-              </p>
-              <p class="card-text" th:text="${event.description != null} ? ${event.description} : 'No description available.'">No description available.</p>
-              <a th:href="@{'/register?eventId=' + ${event.id}}" class="btn btn-register">Register Now</a>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="no-events" th:if="${events == null or #lists.isEmpty(events)}">
-        <p>No upcoming events available at the moment. Check back later!</p>
-      </div>
-    </div>
-  </section><!-- /Events Section -->
-
+  </section>
 </main>
 
 <footer id="footer" class="footer position-relative light-background">
@@ -403,7 +306,5 @@
 
 <!-- Main JS File -->
 <script src="/assets/js/main.js"></script>
-
 </body>
-
 </html>

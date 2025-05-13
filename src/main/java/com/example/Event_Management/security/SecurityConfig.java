@@ -73,11 +73,14 @@ public class SecurityConfig {
                                 "/register",
                                 "/scan",
                                 "/MyEvents/**",
-                                "/eventDetails/**"
+                                "/eventDetails/**",
+                                "/registrations",
+                                "/infos",
+                                "/password"
                                 ).permitAll()
                         .requestMatchers("GET", "/register", "/eventDetails/**").permitAll() // Allow GET /events for all
                         .requestMatchers("GET", "/createEvent/**","eventCreated", "/MyEvents/**","/deleteEvent/**", "/modifyEvent/**").permitAll() // Allow GET /events for all
-                        .requestMatchers("POST", "/createEvent/**", "/deleteEvent/**", "/modifyEvent/**", "/modifyEvent").hasAnyAuthority("ADMIN", "SUPER_ADMIN") // Restrict POST /events
+                        .requestMatchers("POST","/createEvent/**", "/deleteEvent/**", "/modifyEvent/**", "/modifyEvent").hasAnyAuthority("ADMIN", "SUPER_ADMIN") // Restrict POST /events
                         .anyRequest().authenticated()
                 )
 //                .formLogin(form -> form

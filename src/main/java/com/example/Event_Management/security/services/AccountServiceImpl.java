@@ -57,4 +57,26 @@ public class AccountServiceImpl implements AccountService {
     public List<AppUser> listUsers() {
         return appUserRepository.findAll();
     }
+
+    @Override
+    public void updateUser(AppUser user) {
+
+        AppUser existingUser = appUserRepository.findById(user.getId()).orElseThrow(() -> new RuntimeException("User not found"));
+        existingUser.setUsername(user.getUsername());
+        existingUser.setEmail(user.getEmail());
+        existingUser.setFirstName(user.getFirstName());
+        existingUser.setLastName(user.getLastName());
+        existingUser.setNumberPhone(user.getNumberPhone());
+        existingUser.setAppRoles(existingUser.getAppRoles());
+        existingUser.setProfilePicture(existingUser.getProfilePicture());
+        existingUser.setPassword(existingUser.getPassword());
+        appUserRepository.save(existingUser);
+    }
+
+    @Override
+    public void updateUsersPassword(AppUser user) {
+        AppUser existingUser = appUserRepository.findById(user.getId()).orElseThrow(() -> new RuntimeException("User not found"));
+        existingUser.setPassword(user.getPassword());
+        appUserRepository.save(existingUser);
+    }
 }

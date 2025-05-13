@@ -115,25 +115,153 @@
       text-align: center;
       margin-top: 20px;
     }
+    .profile-main {
+      width: 100%;
+      display: block;
+      text-align: center;
+      padding: 20px 0;
+      box-sizing: border-box;
+      min-height: calc(100vh - 200px);
+    }
+    .profile-container {
+      max-width: 1000px;
+      width: 100%;
+      margin: 0 auto !important;
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      box-sizing: border-box;
+      display: flex;
+    }
+    .profile-sidebar {
+      width: 250px;
+      padding-right: 20px;
+      border-right: 1px solid #ddd;
+    }
+    .profile-picture {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin: 0 auto 20px;
+      display: block;
+      border: 3px solid #28a745; /* Green circle border */
+    }
+    .profile-link {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-top: 15px;
+      margin-left: 20px; /* Space between profile and sign-in button */
+    }
+    .profile-nav {
+      list-style: none;
+      padding: 0;
+    }
+    .profile-nav li {
+      margin-bottom: 10px;
+    }
+    .profile-nav a {
+      display: block;
+      padding: 10px;
+      color: #333;
+      font-size: 1rem;
+      text-decoration: none;
+      border-radius: 5px;
+      transition: background-color 0.3s;
+    }
+    .profile-nav a:hover,
+    .profile-nav a.active {
+      background-color: #28a745;
+      color: white;
+    }
+    .profile-content {
+      flex: 1;
+      padding-left: 20px;
+    }
+    .profile-title {
+      color: #333;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .profile-form {
+      max-width: 500px;
+      margin: 0 auto;
+    }
+    .profile-form .form-group {
+      margin-bottom: 15px;
+    }
+    .profile-form label {
+      display: block;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 5px;
+    }
+    .profile-form input {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 1rem;
+    }
+    .profile-btn-primary {
+      background-color: #28a745;
+      border-color: #28a745;
+      padding: 8px 16px;
+      font-size: 0.9rem;
+      border-radius: 5px;
+      color: white;
+      text-decoration: none;
+    }
+    .profile-btn-primary:hover {
+      background-color: #218838;
+      border-color: #218838;
+    }
+    .profile-alert {
+      margin-top: 20px;
+      font-size: 0.9rem;
+    }
+    @media (max-width: 768px) {
+      .profile-container {
+        max-width: 90%;
+        flex-direction: column;
+      }
+      .profile-sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid #ddd;
+        padding-bottom: 20px;
+        margin-bottom: 20px;
+      }
+      .profile-content {
+        padding-left: 0;
+      }
+      .profile-link {
+        margin-right: 5px; /* Reduced space for mobile */
+      }
+      .profile-picture {
+        width: 30px; /* Smaller size for mobile */
+        height: 30px;
+      }
+    }
   </style>
 </head>
 
-<body class="pricing-page">
-
+<body class="password-page">
 <header id="header" class="header d-flex align-items-center sticky-top">
   <div class="container-fluid container-xl position-relative d-flex align-items-center">
     <a href="/" class="logo d-flex align-items-center me-auto">
       <h1 class="sitename">SecurePass</h1>
     </a>
-
     <nav id="navmenu" class="navmenu">
       <ul>
         <li><a href="/">Home</a></li>
         <li><a href="/about">About</a></li>
         <li><a href="/events">Events</a></li>
         <li th:if="${roles != null and (roles.contains('ADMIN') or roles.contains('SUPER_ADMIN'))}">
-          <a href="/createEvent">Create Event</a>
-        </li>
+          <a href="/createEvent">Create Event</a></li>
         <li th:if="${roles != null and (roles.contains('ADMIN') or roles.contains('SUPER_ADMIN'))}" class="dropdown">
           <a href="#"><span>Admin Resources</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
           <ul>
@@ -145,14 +273,24 @@
       </ul>
       <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
     </nav>
-
-    <div>
+    <div class="d-flex align-items-center">
       <form th:action="@{${buttonAction}}" th:method="${buttonMethod}">
         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" th:if="${buttonMethod == 'post'}" />
         <button class="btn-getstarted" type="submit" th:text="${buttonText}">Action</button>
       </form>
-    </div>  </div>
+    </div>
+    <div class="profile-link">
+      <a th:if="${user != null or roles != null}" href="/infos">
+        <img th:if="${user != null and user.profilePicture != null}" th:src="${user.profilePicture}" class="profile-picture" alt="Profile Picture" style="width: 30px; height: 30px;">
+        <img th:unless="${user != null and user.profilePicture != null}" th:src="'https://www.pngkey.com/png/detail/115-1150152_default-profile-picture-avatar-png-green.png'" class="profile-picture" alt="Profile Picture" style="width: 40px; height: 40px;">
+      </a>
+      <a th:if="${roles == null}" href="/signin">
+        <img th:src="'https://www.pngkey.com/png/detail/115-1150152_default-profile-picture-avatar-png-green.png'" class="profile-picture" alt="Profile Picture" style="width: 40px; height: 40px;">
+      </a>
+    </div>
+  </div>
 </header>
+
 
 <main class="main">
 
