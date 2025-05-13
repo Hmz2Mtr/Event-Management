@@ -81,6 +81,7 @@ public class SecurityConfig {
                         .requestMatchers("GET", "/register", "/eventDetails/**").permitAll() // Allow GET /events for all
                         .requestMatchers("GET", "/createEvent/**","eventCreated", "/MyEvents/**","/deleteEvent/**", "/modifyEvent/**").permitAll() // Allow GET /events for all
                         .requestMatchers("POST","/createEvent/**", "/deleteEvent/**", "/modifyEvent/**", "/modifyEvent").hasAnyAuthority("ADMIN", "SUPER_ADMIN") // Restrict POST /events
+                        .requestMatchers("/dashboard/**").permitAll() // Restrict dashboard access
                         .anyRequest().authenticated()
                 )
 //                .formLogin(form -> form
@@ -96,6 +97,7 @@ public class SecurityConfig {
                         .ignoringRequestMatchers("/signin/**","/signup/**","/eventCreated") // Disable CSRF for /signin
                         .ignoringRequestMatchers("/h2-console/**")  // Only disable CSRF for H2 consol
                         .ignoringRequestMatchers("/logout")  // Only disable CSRF for H2 console
+                        .ignoringRequestMatchers("/dashboard/**")  // Disable CSRF for dashboard
                         //.disable()
                 )
                 .sessionManagement(session -> session

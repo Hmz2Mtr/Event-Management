@@ -3,9 +3,9 @@
 <head>
     <meta charset="utf-8">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <title>Event Details - SecurePass</title>
-    <meta name="description" content="View details of an event with SecurePass, including sessions, speakers, and registration options.">
-    <meta name="keywords" content="event management, facial recognition, SecurePass, event details">
+    <title>Modify Event - SecurePass</title>
+    <meta name="description" content="Modify an existing event with SecurePass, featuring secure facial recognition for attendee verification and seamless event management.">
+    <meta name="keywords" content="event management, facial recognition, SecurePass, modify event">
 
     <!-- Favicons -->
     <link href="/assets/img/favicon.png" rel="icon">
@@ -26,13 +26,8 @@
     <!-- Main CSS File -->
     <link href="/assets/css/main.css" rel="stylesheet">
 
-    <!-- Custom CSS for Event Details Page -->
+    <!-- Custom CSS for Modify Event Page -->
     <style>
-        .event-main {
-            width: 100%;
-            justify-content: center;
-            padding: 20px 0; /* Vertical spacing */
-        }
         .event-banner {
             width: 100%;
             height: 300px;
@@ -40,205 +35,78 @@
             border-radius: 8px;
             margin-bottom: 30px;
         }
-        .event-container {
-            max-width: 1000px;
-            margin: 0 auto; /* Center horizontally */
+        .container {
+            max-width: 800px;
+            margin-top: 50px;
             background: white;
             padding: 30px;
             border-radius: 10px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
-        .event-title {
+        h1 {
             color: #333;
             font-weight: 700;
             text-align: center;
             margin-bottom: 30px;
         }
-        .event-image {
-            max-width: 100%;
-            height: auto;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-        .event-info {
-            margin-bottom: 30px;
-        }
-        .event-info p {
-            font-size: 1rem;
-            color: #555;
-            margin-bottom: 10px;
-        }
-        .event-info strong {
-            color: #333;
-        }
-        .event-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-        }
-        .event-table th, .event-table td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-        .event-table th {
-            background-color: #f9f9f9;
-            font-weight: 600;
+        .form-label {
+            font-weight: 500;
             color: #555;
         }
-        .event-table tbody tr:hover {
-            background-color: #f5f5f5;
-        }
-        .event-btn-primary {
+        .btn-primary {
             background-color: #28a745;
             border-color: #28a745;
+            padding: 10px 20px;
+            font-size: 0.9rem;
+            border-radius: 5px;
+        }
+        .btn-primary:hover {
+            background-color: #218838;
+            border-color: #218838;
+        }
+        .btn-add-session {
+            background-color: #28a745;
+            border-color: #28a745;
+            color: white;
             padding: 8px 16px;
             font-size: 0.9rem;
             border-radius: 5px;
         }
-        .event-btn-primary:hover {
+        .btn-add-session:hover {
             background-color: #218838;
             border-color: #218838;
         }
-        .event-alert {
-            margin-top: 20px;
-            font-size: 0.9rem;
-        }
-        .profile-main {
-            width: 100%;
-            display: block;
-            text-align: center;
-            padding: 20px 0;
-            box-sizing: border-box;
-            min-height: calc(100vh - 200px);
-        }
-        .profile-container {
-            max-width: 1000px;
-            width: 100%;
-            margin: 0 auto !important;
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            box-sizing: border-box;
-            display: flex;
-        }
-        .profile-sidebar {
-            width: 250px;
-            padding-right: 20px;
-            border-right: 1px solid #ddd;
-        }
-        .profile-picture {
-            width: 150px;
-            height: 150px;
-            border-radius: 50%;
-            object-fit: cover;
-            margin: 0 auto 20px;
-            display: block;
-            border: 3px solid #28a745; /* Green circle border */
-        }
-        .profile-link {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-top: 15px;
-            margin-left: 20px; /* Space between profile and sign-in button */
-        }
-        .profile-nav {
-            list-style: none;
-            padding: 0;
-        }
-        .profile-nav li {
-            margin-bottom: 10px;
-        }
-        .profile-nav a {
-            display: block;
-            padding: 10px;
-            color: #333;
-            font-size: 1rem;
-            text-decoration: none;
-            border-radius: 5px;
-            transition: background-color 0.3s;
-        }
-        .profile-nav a:hover,
-        .profile-nav a.active {
-            background-color: #28a745;
+        .btn-remove-session {
+            background-color: #dc3545;
+            border-color: #dc3545;
             color: white;
+            padding: 8px 16px;
+            font-size: 0.9rem;
+            border-radius: 5px;
         }
-        .profile-content {
-            flex: 1;
-            padding-left: 20px;
+        .btn-remove-session:hover {
+            background-color: #c82333;
+            border-color: #c82333;
         }
-        .profile-title {
-            color: #333;
-            font-weight: 700;
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        .profile-form {
-            max-width: 500px;
-            margin: 0 auto;
-        }
-        .profile-form .form-group {
-            margin-bottom: 15px;
-        }
-        .profile-form label {
-            display: block;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 5px;
-        }
-        .profile-form input {
-            width: 100%;
-            padding: 8px;
+        .session-container {
             border: 1px solid #ddd;
+            padding: 15px;
             border-radius: 5px;
-            font-size: 1rem;
+            margin-bottom: 20px;
+            background-color: #f9f9f9;
         }
-        .profile-btn-primary {
-            background-color: #28a745;
-            border-color: #28a745;
-            padding: 8px 16px;
-            font-size: 0.9rem;
-            border-radius: 5px;
-            color: white;
-            text-decoration: none;
-        }
-        .profile-btn-primary:hover {
-            background-color: #218838;
-            border-color: #218838;
-        }
-        .profile-alert {
+        .alert {
             margin-top: 20px;
             font-size: 0.9rem;
         }
-        @media (max-width: 768px) {
-            .profile-container {
-                max-width: 90%;
-                flex-direction: column;
-            }
-            .profile-sidebar {
-                width: 100%;
-                border-right: none;
-                border-bottom: 1px solid #ddd;
-                padding-bottom: 20px;
-                margin-bottom: 20px;
-            }
-            .profile-content {
-                padding-left: 0;
-            }
-            .profile-link {
-                margin-right: 5px; /* Reduced space for mobile */
-            }
-            .profile-picture {
-                width: 30px; /* Smaller size for mobile */
-                height: 30px;
-            }
+        .form-check-input:checked {
+            background-color: #28a745;
+            border-color: #28a745;
         }
     </style>
 </head>
 
-<body class="password-page">
+<body class="modify-event-page">
 <header id="header" class="header d-flex align-items-center sticky-top">
     <div class="container-fluid container-xl position-relative d-flex align-items-center">
         <a href="/" class="logo d-flex align-items-center me-auto">
@@ -250,7 +118,8 @@
                 <li><a href="/about">About</a></li>
                 <li><a href="/events">Events</a></li>
                 <li th:if="${roles != null and (roles.contains('ADMIN') or roles.contains('SUPER_ADMIN'))}">
-                    <a href="/createEvent">Create Event</a></li>
+                    <a href="/createEvent">Create Event</a>
+                </li>
                 <li th:if="${roles != null and (roles.contains('ADMIN') or roles.contains('SUPER_ADMIN'))}" class="dropdown">
                     <a href="#"><span>Admin Resources</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
                     <ul>
@@ -262,105 +131,100 @@
             </ul>
             <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
         </nav>
-        <div class="d-flex align-items-center">
+        <div>
             <form th:action="@{${buttonAction}}" th:method="${buttonMethod}">
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" th:if="${buttonMethod == 'post'}" />
                 <button class="btn-getstarted" type="submit" th:text="${buttonText}">Action</button>
             </form>
         </div>
-        <div class="profile-link">
-            <a th:if="${user != null or roles != null}" href="/infos">
-                <img th:if="${user != null and user.profilePicture != null}" th:src="${user.profilePicture}" class="profile-picture" alt="Profile Picture" style="width: 30px; height: 30px;">
-                <img th:unless="${user != null and user.profilePicture != null}" th:src="'https://www.pngkey.com/png/detail/115-1150152_default-profile-picture-avatar-png-green.png'" class="profile-picture" alt="Profile Picture" style="width: 40px; height: 40px;">
-            </a>
-            <a th:if="${roles == null}" href="/signin">
-                <img th:src="'https://www.pngkey.com/png/detail/115-1150152_default-profile-picture-avatar-png-green.png'" class="profile-picture" alt="Profile Picture" style="width: 40px; height: 40px;">
-            </a>
-        </div>
     </div>
 </header>
 
-<main class="main event-main">
-    <section id="event-details" class="event-details section">
-        <div class="event-container" data-aos="fade-up" data-aos-delay="100">
-            <img src="https://images.unsplash.com/photo-1540575467063-178a50c2df87" class="img-fluid event-banner" alt="Event Details Banner">
-            <h1 class="event-title" th:if="${event != null and event.name != null}" th:text="${event.name}">Event Details</h1>
-            <h1 class="event-title" th:unless="${event != null and event.name != null}">Event Details</h1>
-            <div th:if="${error}" class="event-alert alert-danger" th:text="${error}"></div>
-            <div class="event-info">
-                <p><strong>Description:</strong>
-                    <span th:if="${event != null and event.description != null}" th:text="${event.description}">No description available</span>
-                    <span th:unless="${event != null and event.description != null}">No description available</span>
-                </p>
-                <p><strong>Event Type:</strong>
-                    <span th:if="${event != null and event.eventType != null}" th:text="${event.eventType}">Unknown</span>
-                    <span th:unless="${event != null and event.eventType != null}">Unknown</span>
-                </p>
-                <p><strong>Created By:</strong>
-                    <span th:if="${event != null and event.creatorName != null}" th:text="${event.creatorName}">Unknown</span>
-                    <span th:unless="${event != null and event.creatorName != null}">Unknown</span>
-                </p>
-            </div>
-            <h4>Sessions</h4>
-            <div class="table-responsive">
-                <table class="event-table">
-                    <thead>
-                    <tr>
-                        <th>Session Name</th>
-                        <th>Date</th>
-                        <th>Time</th>
-                        <th>Place</th>
-                        <th>City</th>
-                        <th>Guest Speakers</th>
-                        <th>Invitees</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr th:each="sess : ${event.sessions}" th:if="${event != null and event.sessions != null}">
-                        <td>
-                            <span th:if="${sess != null and sess.name != null}" th:text="${sess.name}">-</span>
-                            <span th:unless="${sess != null and sess.name != null}">-</span>
-                        </td>
-                        <td>
-                            <span th:if="${sess != null and sess.date != null}" th:text="${sess.date}">-</span>
-                            <span th:unless="${sess != null and sess.date != null}">-</span>
-                        </td>
-                        <td>
-                            <span th:if="${sess != null and sess.startTime != null and sess.endTime != null}" th:text="${sess.startTime} + ' - ' + ${sess.endTime}">-</span>
-                            <span th:unless="${sess != null and sess.startTime != null and sess.endTime != null}">-</span>
-                        </td>
-                        <td>
-                            <span th:if="${sess != null and sess.place != null and sess.place.name != null}" th:text="${sess.place.name}">-</span>
-                            <span th:unless="${sess != null and sess.place != null and sess.place.name != null}">-</span>
-                        </td>
-                        <td>
-                            <span th:if="${sess != null and sess.place != null and sess.place.ville != null and sess.place.ville.name != null}" th:text="${sess.place.ville.name}">-</span>
-                            <span th:unless="${sess != null and sess.place != null and sess.place.ville != null and sess.place.ville.name != null}">-</span>
-                        </td>
-                        <td>
-                                <span th:if="${sess != null and sess.guestSpeakers != null and !sess.guestSpeakers.isEmpty()}">
-                                    <span th:each="speaker, iterStat : ${sess.guestSpeakers}"
-                                          th:if="${speaker != null and speaker.speakerName != null}"
-                                          th:text="${speaker.speakerName} + (${iterStat.last} ? '' : ', ')">
-                                    </span>
-                                </span>
-                            <span th:unless="${sess != null and sess.guestSpeakers != null and !sess.guestSpeakers.isEmpty()}">-</span>
-                        </td>
-                        <td>
-                            <span th:if="${sess != null and sess.invitationSessions != null}" th:text="${sess.invitationSessions.size()}">0</span>
-                            <span th:unless="${sess != null and sess.invitationSessions != null}">0</span>
-                        </td>
-                    </tr>
-                    <tr th:if="${event == null or event.sessions == null or event.sessions.isEmpty()}">
-                        <td colspan="7" class="text-center">No sessions available.</td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
-            <div class="text-center mt-4">
-                <a th:href="@{/register(eventId=${event.id})}" class="event-btn-primary me-2" th:if="${isAuthenticated and event != null and event.id != null}">Register for Event</a>
-                <a href="/events" class="event-btn-primary">Back to All Events</a>
-            </div>
+<main class="main">
+    <section id="modify-event" class="modify-event section">
+        <div class="container" data-aos="fade-up" data-aos-delay="100">
+            <img src="https://images.unsplash.com/photo-1540575467063-178a50c2df87" class="img-fluid event-banner" alt="Event Modification Banner">
+            <h1>Modify Event</h1>
+            <div th:if="${param.error}" class="alert alert-danger" th:text="${param.error[0]}"></div>
+            <div th:if="${param.success}" class="alert alert-success">Event updated successfully!</div>
+            <form th:action="@{/modifyEvent}" method="post" id="eventForm" enctype="multipart/form-data">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                <input type="hidden" name="id" th:value="${eventDTO.id}" />
+                <div class="mb-3">
+                    <label for="eventName" class="form-label">Event Name</label>
+                    <input type="text" class="form-control" id="eventName" name="name" th:value="${eventDTO.name}" required>
+                </div>
+                <div class="mb-3">
+                    <label for="eventDescription" class="form-label">Event Description</label>
+                    <textarea class="form-control" id="eventDescription" name="description" rows="4" required th:text="${eventDTO.description}"></textarea>
+                </div>
+                <div class="mb-3">
+                    <label for="eventType" class="form-label">Event Type</label>
+                    <select id="eventType" name="eventType" class="form-control" required>
+                        <option value="" disabled>Select event type</option>
+                        <option value="CONFERENCE" th:selected="${eventDTO.eventType == 'CONFERENCE'}">Conference</option>
+                        <option value="WORKSHOP" th:selected="${eventDTO.eventType == 'WORKSHOP'}">Workshop</option>
+                        <option value="SEMINAR" th:selected="${eventDTO.eventType == 'SEMINAR'}">Seminar</option>
+                        <option value="MEETUP" th:selected="${eventDTO.eventType == 'MEETUP'}">Meetup</option>
+                        <option value="WEBINAR" th:selected="${eventDTO.eventType == 'WEBINAR'}">Webinar</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="eventImage" class="form-label">Event Image (leave blank to keep existing)</label>
+                    <input type="file" class="form-control" id="eventImage" name="image" accept="image/*">
+                    <div th:if="${eventDTO.imageBase64 != null}">
+                        <img th:src="@{'data:image/jpeg;base64,' + ${eventDTO.imageBase64}}" alt="Current Event Image" style="max-width: 200px; margin-top: 10px;" />
+                    </div>
+                </div>
+                <div class="mb-3 form-check">
+<!--                    <input type="checkbox" class="form-check-input" id="facialRecognition" name="facialRecognition" th:checked="${eventDTO.facialRecognition}">-->
+                    <label class="form-check-label" for="facialRecognition">Enable Facial Recognition Verification</label>
+                </div>
+                <div id="sessionsContainer">
+                    <h4>Sessions</h4>
+                    <div th:each="sess, iterStat : ${eventDTO.sessions}" class="session-container" th:id="'session-' + ${iterStat.index}">
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label th:for="'sessionName-' + ${iterStat.index}" class="form-label">Session Name</label>
+                                <input type="text" class="form-control" th:id="'sessionName-' + ${iterStat.index}" th:name="'sessions[' + ${iterStat.index} + '].name'" th:value="${sess.name}" required>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label th:for="'sessionDate-' + ${iterStat.index}" class="form-label">Date</label>
+                                <input type="date" class="form-control" th:id="'sessionDate-' + ${iterStat.index}" th:name="'sessions[' + ${iterStat.index} + '].date'" th:value="${sess.date}" required>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label th:for="'startTime-' + ${iterStat.index}" class="form-label">Start Time</label>
+                                <input type="time" class="form-control" th:id="'startTime-' + ${iterStat.index}" th:name="'sessions[' + ${iterStat.index} + '].startTime'" th:value="${sess.startTime}" required>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label th:for="'endTime-' + ${iterStat.index}" class="form-label">End Time</label>
+                                <input type="time" class="form-control" th:id="'endTime-' + ${iterStat.index}" th:name="'sessions[' + ${iterStat.index} + '].endTime'" th:value="${sess.endTime}" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label th:for="'placeName-' + ${iterStat.index}" class="form-label">Place Name</label>
+                                <input type="text" class="form-control" th:id="'placeName-' + ${iterStat.index}" th:name="'sessions[' + ${iterStat.index} + '].place.name'" th:value="${sess.place.name}" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label th:for="'villeName-' + ${iterStat.index}" class="form-label">City</label>
+                                <input type="text" class="form-control" th:id="'villeName-' + ${iterStat.index}" th:name="'sessions[' + ${iterStat.index} + '].place.ville.name'" th:value="${sess.place.ville.name}" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label th:for="'guestSpeakers-' + ${iterStat.index}" class="form-label">Guest Speakers (comma-separated usernames)</label>
+                                <input type="text" class="form-control" th:id="'guestSpeakers-' + ${iterStat.index}" th:name="'sessions[' + ${iterStat.index} + '].guestSpeakers'" th:value="${sess.guestSpeakers}" placeholder="e.g., user1,user2">
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end mb-3">
+                                <button type="button" class="btn btn-remove-session" th:onclick="'removeSession(' + ${iterStat.index} + ')'" th:disabled="${eventDTO.sessions.size() == 1}">Remove</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <button type="button" class="btn btn-add-session" onclick="addSession()">+ Add Session</button>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Update Event</button>
+            </form>
         </div>
     </section>
 </main>
@@ -440,5 +304,126 @@
 
 <!-- Main JS File -->
 <script src="/assets/js/main.js"></script>
+
+<!-- Custom JS for Modify Event -->
+<script>
+    let sessionCount = /*[[${eventDTO.sessions.size()}]]*/ 1;
+
+    function addSession() {
+        const sessionsContainer = document.getElementById('sessionsContainer');
+        const sessionDiv = document.createElement('div');
+        sessionDiv.className = 'session-container';
+        sessionDiv.id = `session-${sessionCount}`;
+        sessionDiv.innerHTML = `
+                <div class="row">
+                    <div class="col-md-12 mb-3">
+                        <label for="sessionName-${sessionCount}" class="form-label">Session Name</label>
+                        <input type="text" class="form-control" id="sessionName-${sessionCount}" name="sessions[${sessionCount}].name" required>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="sessionDate-${sessionCount}" class="form-label">Date</label>
+                        <input type="date" class="form-control" id="sessionDate-${sessionCount}" name="sessions[${sessionCount}].date" required>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label for="startTime-${sessionCount}" class="form-label">Start Time</label>
+                        <input type="time" class="form-control" id="startTime-${sessionCount}" name="sessions[${sessionCount}].startTime" required>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label for="endTime-${sessionCount}" class="form-label">End Time</label>
+                        <input type="time" class="form-control" id="endTime-${sessionCount}" name="sessions[${sessionCount}].endTime" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="placeName-${sessionCount}" class="form-label">Place Name</label>
+                        <input type="text" class="form-control" id="placeName-${sessionCount}" name="sessions[${sessionCount}].place.name" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="villeName-${sessionCount}" class="form-label">City</label>
+                        <input type="text" class="form-control" id="villeName-${sessionCount}" name="sessions[${sessionCount}].place.ville.name" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="guestSpeakers-${sessionCount}" class="form-label">Guest Speakers (comma-separated usernames)</label>
+                        <input type="text" class="form-control" id="guestSpeakers-${sessionCount}" name="sessions[${sessionCount}].guestSpeakers" placeholder="e.g., user1,user2">
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end mb-3">
+                        <button type="button" class="btn btn-remove-session" onclick="removeSession(${sessionCount})">Remove</button>
+                    </div>
+                </div>
+            `;
+        sessionsContainer.appendChild(sessionDiv);
+        sessionCount++;
+        updateRemoveButtons();
+    }
+
+    function removeSession(index) {
+        const sessionDiv = document.getElementById(`session-${index}`);
+        if (sessionDiv) {
+            sessionDiv.remove();
+            updateRemoveButtons();
+        }
+    }
+
+    function updateRemoveButtons() {
+        const sessionContainers = document.querySelectorAll('.session-container');
+        sessionContainers.forEach((container, index) => {
+            const button = container.querySelector('.btn-remove-session');
+            button.disabled = sessionContainers.length === 1;
+        });
+    }
+
+    // Initialize remove button states on page load
+    document.addEventListener('DOMContentLoaded', updateRemoveButtons);
+
+    // Validate form before submission
+    document.getElementById('eventForm').addEventListener('submit', function(event) {
+        const sessionContainers = document.querySelectorAll('.session-container');
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Normalize to start of day
+
+        for (let i = 0; i < sessionContainers.length; i++) {
+            const nameInput = document.getElementById(`sessionName-${i}`);
+            const dateInput = document.getElementById(`sessionDate-${i}`);
+            const startTimeInput = document.getElementById(`startTime-${i}`);
+            const endTimeInput = document.getElementById(`endTime-${i}`);
+            const placeNameInput = document.getElementById(`placeName-${i}`);
+            const villeNameInput = document.getElementById(`villeName-${i}`);
+
+            // Check for required fields
+            if (!nameInput.value || !dateInput.value || !startTimeInput.value || !endTimeInput.value || !placeNameInput.value || !villeNameInput.value) {
+                event.preventDefault();
+                alert('Please fill out all required fields for session ' + (i + 1));
+                return;
+            }
+
+            // Validate start time is before end time
+            const startTime = startTimeInput.value; // e.g., "09:00"
+            const endTime = endTimeInput.value; // e.g., "11:00"
+            if (startTime >= endTime) {
+                event.preventDefault();
+                alert('Start time must be before end time for session ' + (i + 1));
+                return;
+            }
+
+            // Validate date and time are not in the past
+            const sessionDate = new Date(dateInput.value);
+            if (sessionDate < today) {
+                event.preventDefault();
+                alert('Session date cannot be in the past for session ' + (i + 1));
+                return;
+            }
+            if (sessionDate.getTime() === today.getTime()) {
+                // If session is today, check that times are not in the past
+                const now = new Date();
+                const currentTime = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+                if (startTime < currentTime || endTime < currentTime) {
+                    event.preventDefault();
+                    alert('Session times cannot be in the past for session ' + (i + 1));
+                    return;
+                }
+            }
+        }
+    });
+</script>
 </body>
 </html>

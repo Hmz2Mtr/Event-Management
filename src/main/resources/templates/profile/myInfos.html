@@ -208,11 +208,12 @@
       <!-- Sidebar -->
       <div class="profile-sidebar">
         <img th:if="${user != null and user.profilePicture != null}" th:src="${user.profilePicture}" class="profile-picture" alt="Profile Picture">
-        <img th:unless="${user != null and user.profilePicture != null}" th:src="''" class="profile-picture" alt="Profile Picture">        <ul class="profile-nav">
-          <li><a href="/registrations">My Registrations</a></li>
-          <li><a class="active" href="/infos">My Infos</a></li>
-          <li><a href="/password">Change My Password</a></li>
-        </ul>
+        <img th:unless="${user != null and user.profilePicture != null}" th:src="'https://www.pngkey.com/png/detail/115-1150152_default-profile-picture-avatar-png-green.png'" class="profile-picture" alt="Profile Picture">
+        <ul class="profile-nav">
+        <li><a href="/registrations">My Registrations</a></li>
+        <li><a class="active" href="/infos">My Infos</a></li>
+        <li><a href="/password">Change My Password</a></li>
+      </ul>
       </div>
       <!-- Main Content -->
       <div class="profile-content">
@@ -241,10 +242,10 @@
             <input type="email" id="email" th:field="*{email}" required>
           </div>
 
-            <div class="form-group">
-                <label for="phone">Phone</label>
-                <input type="text" id="phone" th:field="${user.numberPhone}" required>
-            </div>
+          <div class="form-group">
+            <label for="phone">Phone</label>
+            <input type="text" id="phone" th:field="${user.numberPhone}" required>
+          </div>
           <div class="text-center">
             <button type="submit" class="profile-btn-primary">Update Profile</button>
           </div>

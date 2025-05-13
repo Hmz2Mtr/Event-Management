@@ -9,4 +9,6 @@ import java.util.List;
 @Repository
 public interface InvitationFormRepository extends JpaRepository<InvitationForm, Long> {
     List<InvitationForm> findByEmail(String email);
+
+    long countByInvitationSessionsEventName(String name);
 }
