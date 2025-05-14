@@ -168,7 +168,7 @@ public class FaceController {
                     "message", "Welcome " + matchedUser.getUsername() + "!",
                     "user", matchedUser.getUsername(),
                     "confidence", bestMatchScore,
-                    "shouldContinue", true
+                    "shouldContinue", false
                 ));
             }
 
