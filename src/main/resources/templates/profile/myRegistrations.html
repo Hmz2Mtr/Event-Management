@@ -229,6 +229,7 @@
                 <th>Event Name</th>
                 <th>Session Name</th>
                 <th>Invitee</th>
+                <th>Username</th>
               </tr>
               </thead>
               <tbody>
@@ -236,6 +237,7 @@
                 <td th:text="${session.eventName != null} ? ${session.eventName} : '-'">-</td>
                 <td th:text="${session.sessionName != null} ? ${session.sessionName} : '-'">-</td>
                 <td th:text="${session.invitee != null} ? ${session.invitee} : '-'">-</td>
+                <td th:text="${session.username != null} ? ${session.username} : '-'">-</td>
               </tr>
               </tbody>
             </table>

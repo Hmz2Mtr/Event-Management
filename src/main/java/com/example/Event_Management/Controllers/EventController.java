@@ -408,13 +408,16 @@ public class EventController {
         invitationFormRepository.save(invitationForm);
 
         String invitee = invitationFormDTO.getFirstName() + " " + invitationFormDTO.getLastName();
+        String username = (String) userInfo.get("username");
+        
         for (Session session : sessions) {
             InvitationSession invitationSession = new InvitationSession(
                     invitationForm,
                     session,
                     event.getName(),
                     session.getName(),
-                    invitee
+                    invitee,
+                    username
             );
             invitationForm.addInvitationSession(invitationSession);
             session.getInvitationSessions().add(invitationSession);

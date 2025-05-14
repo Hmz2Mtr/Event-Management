@@ -34,12 +34,15 @@ public class InvitationSession {
     @Column(name = "invitee", nullable = false)
     private String invitee;
 
+    @Column(name = "username", nullable = false)
+    private String username;
 
-    public InvitationSession(InvitationForm invitationForm, Session session, String eventName, String sessionName, String invitee) {
+    public InvitationSession(InvitationForm invitationForm, Session session, String eventName, String sessionName, String invitee, String username) {
         this.invitationForm = invitationForm;
         this.session = session;
         this.eventName = eventName;
         this.sessionName = sessionName;
         this.invitee = invitee;
+        this.username = username;
     }
 }

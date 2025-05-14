@@ -266,7 +266,7 @@
                                             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                                             <button type="submit" class="myevents-btn myevents-btn-danger me-2">Delete Event</button>
                                         </form>
-                                        <form th:action="@{/scan/{id}(id=${event.id})}" method="post" style="display:inline;">
+                                        <form th:action="@{/scan/{id}(id=${event.id})}" method="get" style="display:inline;">
 <!--                                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />-->
                                             <button type="submit" class="myevents-btn myevents-btn-primary">Scan</button>
                                         </form>

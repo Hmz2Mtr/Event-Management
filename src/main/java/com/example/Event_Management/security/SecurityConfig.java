@@ -76,7 +76,8 @@ public class SecurityConfig {
                                 "/eventDetails/**",
                                 "/registrations",
                                 "/infos",
-                                "/password"
+                                "/password",
+                                "/api/scan/**"
                                 ).permitAll()
                         .requestMatchers("GET", "/register", "/eventDetails/**").permitAll() // Allow GET /events for all
                         .requestMatchers("GET", "/createEvent/**","eventCreated", "/MyEvents/**","/deleteEvent/**", "/modifyEvent/**").permitAll() // Allow GET /events for all
@@ -98,6 +99,7 @@ public class SecurityConfig {
                         .ignoringRequestMatchers("/h2-console/**")  // Only disable CSRF for H2 consol
                         .ignoringRequestMatchers("/logout")  // Only disable CSRF for H2 console
                         .ignoringRequestMatchers("/dashboard/**")  // Disable CSRF for dashboard
+                        .ignoringRequestMatchers("/api/scan/**")  // Disable CSRF for face scanning endpoint
                         //.disable()
                 )
                 .sessionManagement(session -> session

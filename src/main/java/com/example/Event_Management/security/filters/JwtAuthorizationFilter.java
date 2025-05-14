@@ -7,6 +7,7 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 import com.example.Event_Management.security.JWTUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -25,35 +26,47 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
         if (request.getServletPath().equals("/refreshToken") || request.getServletPath().equals("/login")) {
             filterChain.doFilter(request, response);
             return;
-        } else {
-            String authorizationToken = request.getHeader(JWTUtil.AUTH_HEADER);
-            if (authorizationToken != null && authorizationToken.startsWith(JWTUtil.PREFIX)) {
-                // Validate the JWT token and set the authentication in the security context
-                try {
-                    // Decode the JWT token to extract user information
-                    String jwt = authorizationToken.substring(JWTUtil.PREFIX.length());
-                    Algorithm algorithm = Algorithm.HMAC256(JWTUtil.SECRET);
-                    JWTVerifier jwtVerifier = JWT.require(algorithm).build();
-                    DecodedJWT decodedJWT = jwtVerifier.verify(jwt);
-                    String username = decodedJWT.getSubject();
-                    // You can also extract roles or other claims from the token
-                    String[] roles = decodedJWT.getClaim("roles").asArray(String.class);
-                    // Set the authentication in the security context
-                    Collection<GrantedAuthority> authorities = new ArrayList<>();
-                    for (String role : roles) {
-                        authorities.add(new SimpleGrantedAuthority(role));
-                    }
-                    UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(username, null, authorities);
-                    SecurityContextHolder.getContext().setAuthentication(authenticationToken);
-                    //pass a la servlet
-                    filterChain.doFilter(request, response);
-                } catch (Exception e) {
-                    response.sendError(HttpServletResponse.SC_FORBIDDEN, "Invalid JWT token");
+        }
+
+        // First try to get token from Authorization header
+        String authorizationToken = request.getHeader(JWTUtil.AUTH_HEADER);
+        
+        // If not in header, try to get from cookies
+        if (authorizationToken == null && request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if ("access_token".equals(cookie.getName())) {
+                    authorizationToken = JWTUtil.PREFIX + cookie.getValue();
+                    break;
                 }
-            } else {
-                //pass a la servlet but i don't know you you don't have a token
-                filterChain.doFilter(request, response);
             }
+        }
+
+        if (authorizationToken != null && authorizationToken.startsWith(JWTUtil.PREFIX)) {
+            // Validate the JWT token and set the authentication in the security context
+            try {
+                // Decode the JWT token to extract user information
+                String jwt = authorizationToken.substring(JWTUtil.PREFIX.length());
+                Algorithm algorithm = Algorithm.HMAC256(JWTUtil.SECRET);
+                JWTVerifier jwtVerifier = JWT.require(algorithm).build();
+                DecodedJWT decodedJWT = jwtVerifier.verify(jwt);
+                String username = decodedJWT.getSubject();
+                // You can also extract roles or other claims from the token
+                String[] roles = decodedJWT.getClaim("roles").asArray(String.class);
+                // Set the authentication in the security context
+                Collection<GrantedAuthority> authorities = new ArrayList<>();
+                for (String role : roles) {
+                    authorities.add(new SimpleGrantedAuthority(role));
+                }
+                UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(username, null, authorities);
+                SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+                //pass a la servlet
+                filterChain.doFilter(request, response);
+            } catch (Exception e) {
+                response.sendError(HttpServletResponse.SC_FORBIDDEN, "Invalid JWT token");
+            }
+        } else {
+            //pass a la servlet but i don't know you you don't have a token
+            filterChain.doFilter(request, response);
         }
     }
 }
