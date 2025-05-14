@@ -310,21 +310,6 @@ public class EventController {
 
 
 
-    @GetMapping("/events/{id}")
-    public ResponseEntity<Event> getEventById(@PathVariable Long id, Model model, HttpServletRequest request) {
-        // Decode JWT using JwtTokenDecoder
-        Map<String, Object> userInfo = jwtTokenDecoder.decodeToken(request);
-        model.addAttribute("username", userInfo.get("username"));
-        model.addAttribute("roles", userInfo.get("roles"));
-        addAuthButtonAttributes(model, userInfo);
-
-        Event event = eventRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Event not found with ID: " + id));
-        return ResponseEntity.ok(event);
-    }
-
-
-
     @GetMapping("/eventCreated")
     public String eventCreated(Model model, HttpServletRequest request) {
         Map<String, Object> userInfo = jwtTokenDecoder.decodeToken(request);
@@ -724,5 +709,115 @@ public class EventController {
 
         model.addAttribute("event", event);
         return "Events/eventDetails";
+    }
+
+    @GetMapping("/registerSession")
+    public String registerSessionPage(@RequestParam Long eventId, @RequestParam Long sessionId, Model model, HttpServletRequest request, RedirectAttributes redirectAttributes) {
+        logger.debug("Processing register session page request for eventId: {} and sessionId: {}", eventId, sessionId);
+
+        // Check if user is authenticated
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        boolean isAuthenticated = authentication != null && authentication.isAuthenticated();
+
+        if (!isAuthenticated) {
+            logger.debug("User is not authenticated, redirecting to /signup");
+            return "redirect:/signup";
+        }
+
+        Map<String, Object> userInfo = jwtTokenDecoder.decodeToken(request);
+        model.addAttribute("username", userInfo.get("username"));
+        model.addAttribute("roles", userInfo.get("roles"));
+        addAuthButtonAttributes(model, userInfo);
+
+        Optional<Event> eventOpt = eventRepository.findById(eventId);
+        if (!eventOpt.isPresent()) {
+            redirectAttributes.addFlashAttribute("error", "Event not found");
+            return "redirect:/events";
+        }
+        Event event = eventOpt.get();
+
+        Optional<Session> sessionOpt = sessionRepository.findById(sessionId);
+        if (!sessionOpt.isPresent()) {
+            redirectAttributes.addFlashAttribute("error", "Session not found");
+            return "redirect:/events";
+        }
+        Session session = sessionOpt.get();
+
+        if (!event.getSessions().contains(session)) {
+            redirectAttributes.addFlashAttribute("error", "Session does not belong to this event");
+            return "redirect:/events";
+        }
+
+        model.addAttribute("eventName", event.getName());
+        model.addAttribute("sessionName", session.getName());
+
+        InvitationFormDTO invitationFormDTO = new InvitationFormDTO();
+        invitationFormDTO.setEventId(eventId);
+        invitationFormDTO.setSessionId(sessionId);
+        model.addAttribute("invitationFormDTO", invitationFormDTO);
+
+        return "Events/register";
+    }
+
+    @PostMapping("/registerSession")
+    public String submitSessionRegistration(@Valid @ModelAttribute("invitationFormDTO") InvitationFormDTO invitationFormDTO, 
+                                          BindingResult result, Model model, HttpServletRequest request, 
+                                          RedirectAttributes redirectAttributes) {
+        logger.debug("Processing session registration submission for eventId: {} and sessionId: {}", 
+                    invitationFormDTO.getEventId(), invitationFormDTO.getSessionId());
+        
+        Map<String, Object> userInfo = jwtTokenDecoder.decodeToken(request);
+        model.addAttribute("username", userInfo.get("username"));
+        model.addAttribute("roles", userInfo.get("roles"));
+        addAuthButtonAttributes(model, userInfo);
+
+        if (result.hasErrors()) {
+            Optional<Event> eventOpt = eventRepository.findById(invitationFormDTO.getEventId());
+            if (eventOpt.isPresent()) {
+                model.addAttribute("eventName", eventOpt.get().getName());
+            }
+            return "Events/register";
+        }
+
+        Optional<Event> eventOpt = eventRepository.findById(invitationFormDTO.getEventId());
+        if (!eventOpt.isPresent()) {
+            redirectAttributes.addFlashAttribute("error", "Event not found");
+            return "redirect:/events";
+        }
+        Event event = eventOpt.get();
+
+        Optional<Session> sessionOpt = sessionRepository.findById(invitationFormDTO.getSessionId());
+        if (!sessionOpt.isPresent()) {
+            redirectAttributes.addFlashAttribute("error", "Session not found");
+            return "redirect:/events";
+        }
+        Session session = sessionOpt.get();
+
+        InvitationForm invitationForm = new InvitationForm(
+                invitationFormDTO.getFirstName(),
+                invitationFormDTO.getLastName(),
+                invitationFormDTO.getPhoneNumber(),
+                invitationFormDTO.getEmail()
+        );
+        invitationFormRepository.save(invitationForm);
+
+        String invitee = invitationFormDTO.getFirstName() + " " + invitationFormDTO.getLastName();
+        String username = (String) userInfo.get("username");
+
+        InvitationSession invitationSession = new InvitationSession(
+                invitationForm,
+                session,
+                event.getName(),
+                session.getName(),
+                invitee,
+                username
+        );
+        invitationForm.addInvitationSession(invitationSession);
+        session.getInvitationSessions().add(invitationSession);
+        invitationSessionRepository.save(invitationSession);
+
+        redirectAttributes.addFlashAttribute("success", 
+            "Registration successful for session " + session.getName() + " in event " + event.getName());
+        return "redirect:/events";
     }
 }

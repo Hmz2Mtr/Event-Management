@@ -70,10 +70,37 @@
                 padding: 8px 16px;
                 font-size: 0.9rem;
                 border-radius: 5px;
+                color: white;
+                text-decoration: none;
+                display: inline-block;
+                transition: all 0.3s ease;
             }
             .event-btn-primary:hover {
                 background-color: #218838;
                 border-color: #218838;
+                transform: translateY(-2px);
+                box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            }
+            .event-btn-primary.btn-sm {
+                padding: 6px 12px;
+                font-size: 0.85rem;
+            }
+            .event-btn-register {
+                background-color: #007bff;
+                border-color: #007bff;
+                padding: 6px 12px;
+                font-size: 0.85rem;
+                border-radius: 5px;
+                color: white;
+                text-decoration: none;
+                display: inline-block;
+                transition: all 0.3s ease;
+            }
+            .event-btn-register:hover {
+                background-color: #0056b3;
+                border-color: #0056b3;
+                transform: translateY(-2px);
+                box-shadow: 0 2px 5px rgba(0,0,0,0.2);
             }
             .event-alert {
                 margin-top: 20px;
@@ -271,7 +298,7 @@
                             <th>Place</th>
                             <th>City</th>
                             <th>Guest Speakers</th>
-                            <th>Invitees</th>
+                            <th>Actions</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -306,8 +333,9 @@
                                 <span th:unless="${sess != null and sess.guestSpeakers != null and !sess.guestSpeakers.isEmpty()}">-</span>
                             </td>
                             <td>
-                                <span th:if="${sess != null and sess.invitationSessions != null}" th:text="${sess.invitationSessions.size()}">0</span>
-                                <span th:unless="${sess != null and sess.invitationSessions != null}">0</span>
+                                <a th:if="${isAuthenticated and event != null and event.id != null and sess != null and sess.id != null}"
+                                   th:href="@{/registerSession(eventId=${event.id},sessionId=${sess.id})}"
+                                   class="event-btn-register">Register</a>
                             </td>
                         </tr>
                         <tr th:if="${event == null or event.sessions == null or event.sessions.isEmpty()}">
@@ -317,7 +345,7 @@
                     </table>
                 </div>
                 <div class="text-center mt-4">
-                    <a th:href="@{/register(eventId=${event.id})}" class="event-btn-primary me-2" th:if="${isAuthenticated and event != null and event.id != null}">Register for Event</a>
+                    <a th:href="@{/register(eventId=${event.id})}" class="event-btn-primary me-2" th:if="${isAuthenticated and event != null and event.id != null}">Register for All Sessions</a>
                     <a href="/events" class="event-btn-primary">Back to All Events</a>
                 </div>
             </div>

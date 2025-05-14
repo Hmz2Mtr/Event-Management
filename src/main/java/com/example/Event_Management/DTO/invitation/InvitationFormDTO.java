@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class InvitationFormDTO {
     private Long eventId;
+    private Long sessionId;
 
     @NotBlank(message = "First name is required")
     private String firstName;

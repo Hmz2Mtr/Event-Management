@@ -244,8 +244,9 @@
             <div class="container" data-aos="fade-up">
                 <div class="register-form">
                     <h2>Registration Form</h2>
-                    <form th:action="@{/register}" th:object="${invitationFormDTO}" method="post">
+                    <form th:action="${invitationFormDTO.sessionId != null} ? @{/registerSession} : @{/register}" th:object="${invitationFormDTO}" method="post">
                         <input type="hidden" th:field="*{eventId}" />
+                        <input type="hidden" th:field="*{sessionId}" th:if="*{sessionId != null}" />
                         <div class="form-group">
                             <label for="firstName">First Name</label>
                             <input type="text" id="firstName" th:field="*{firstName}" required />

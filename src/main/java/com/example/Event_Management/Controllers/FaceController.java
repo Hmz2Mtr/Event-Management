@@ -35,12 +35,13 @@ public class FaceController {
         this.faceRecognitionService = faceRecognitionService;
     }
 
-    @GetMapping("/scan/{eventId}")
-    public String showScanPage(@PathVariable Long eventId, Model model) {
+    @GetMapping("/scan/{eventId}/{sessionId}")
+    public String showScanPage(@PathVariable Long eventId, @PathVariable Long sessionId, Model model) {
         try {
             Event event = eventRepository.findById(eventId)
                     .orElseThrow(() -> new RuntimeException("Event not found"));
             model.addAttribute("event", event);
+            model.addAttribute("sessionId", sessionId);
             return "admin/face-scan";
         } catch (Exception e) {
             logger.error("Error showing scan page: ", e);
@@ -49,11 +50,12 @@ public class FaceController {
         }
     }
 
-    @PostMapping("/api/scan/{eventId}")
+    @PostMapping("/api/scan/{eventId}/{sessionId}")
     @ResponseBody
     @CrossOrigin("*")
-    public ResponseEntity<?> verifyFaceForEvent(@PathVariable Long eventId,
-                                               @RequestBody Map<String, String> requestBody) {
+    public ResponseEntity<?> verifyFaceForSession(@PathVariable Long eventId,
+                                                 @PathVariable Long sessionId,
+                                                 @RequestBody Map<String, String> requestBody) {
         try {
             String imageBase64 = requestBody.get("image");
             if (imageBase64 == null || imageBase64.isEmpty()) {
@@ -71,11 +73,13 @@ public class FaceController {
             // Remove any whitespace or newlines that might have been added
             imageBase64 = imageBase64.trim();
 
-            // Get event and invitees
+            // Get event and session invitees
             Event event = eventRepository.findById(eventId)
                     .orElseThrow(() -> new RuntimeException("Event not found"));
             
+            // Get invitees for the specific session
             List<String> inviteesUsername = event.getSessions().stream()
+                    .filter(session -> session.getId().equals(sessionId))
                     .flatMap(session -> session.getInvitationSessions().stream())
                     .map(InvitationSession::getUsername)
                     .distinct()
@@ -84,7 +88,7 @@ public class FaceController {
             if (inviteesUsername.isEmpty()) {
                 return ResponseEntity.ok(Map.of(
                     "success", false,
-                    "message", "No invitees found for this event"
+                    "message", "No invitees found for this session"
                 ));
             }
             
@@ -93,7 +97,7 @@ public class FaceController {
             if (invitees.isEmpty()) {
                 return ResponseEntity.ok(Map.of(
                     "success", false,
-                    "message", "No registered users found among invitees"
+                    "message", "No registered users found among session invitees"
                 ));
             }
 
@@ -170,7 +174,7 @@ public class FaceController {
 
             return ResponseEntity.ok(Map.of(
                 "success", false,
-                "message", "Person not recognized or not invited to this event",
+                "message", "Person not recognized or not invited to this session",
                 "shouldContinue", true
             ));
 
