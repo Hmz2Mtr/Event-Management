@@ -39,38 +39,38 @@ public class FaceController {
         this.accountService = accountService;
     }
 
-    @PostMapping("/scan/eventId")
-    public ResponseEntity<?> verifyFaceForEvent(@PathVariable Long eventId,
-                                                HttpServletRequest request,
-                                                Model model,
-                                                Map<String, Object> requestBody) {
-        Map<String, Object> userInfo = jwtTokenDecoder.decodeToken(request);
-        String username = (String) userInfo.get("username");
-        AppUser appUser = accountService.loadUserByUsername(username);
-
-        String imageBase64 = (String) requestBody.get("image");
-
-        if (imageBase64 == null) {
-            return ResponseEntity.badRequest().body("Missing image.");
-        }
-
-        try {
-            // Fetch the event and its invitees
-            Event event = eventRepository.findById(eventId)
-                    .orElseThrow(() -> new RuntimeException("Event not found"));
-            List<String> inveteesUsername = event.getSessions().stream()
-                    .flatMap(session -> session.getInvitationSessions().stream())
-                    .map(InvitationSession::getInvitee)
-                    .distinct()
-                    .collect(Collectors.toList());
-            List<AppUser> invitees = appUserRepository.findByUsernameIn(inveteesUsername);
-
-            if (invitees.isEmpty()) {
-                return ResponseEntity.ok(Map.of(
-                        "verified", false,
-                        "message", "No invitees found for this event"
-                ));
-            }
+//    @PostMapping("/scan/{eventId}")
+//    public ResponseEntity<?> verifyFaceForEvent(@PathVariable Long eventId,
+//                                                HttpServletRequest request,
+//                                                Model model,
+//                                                Map<String, Object> requestBody) {
+//        Map<String, Object> userInfo = jwtTokenDecoder.decodeToken(request);
+//        String username = (String) userInfo.get("username");
+//        AppUser appUser = accountService.loadUserByUsername(username);
+//
+//        String imageBase64 = (String) requestBody.get("image");
+//
+//        if (imageBase64 == null) {
+//            return ResponseEntity.badRequest().body("Missing image.");
+//        }
+//
+//        try {
+//            // Fetch the event and its invitees
+//            Event event = eventRepository.findById(eventId)
+//                    .orElseThrow(() -> new RuntimeException("Event not found"));
+//            List<String> inveteesUsername = event.getSessions().stream()
+//                    .flatMap(session -> session.getInvitationSessions().stream())
+//                    .map(InvitationSession::getInvitee)
+//                    .distinct()
+//                    .collect(Collectors.toList());
+//            List<AppUser> invitees = appUserRepository.findByUsernameIn(inveteesUsername);
+//
+//            if (invitees.isEmpty()) {
+//                return ResponseEntity.ok(Map.of(
+//                        "verified", false,
+//                        "message", "No invitees found for this event"
+//                ));
+//            }
 
 //            // Decode the captured image
 //            byte[] imageBytes = Base64.getDecoder().decode(imageBase64);
@@ -96,15 +96,15 @@ public class FaceController {
 //                }
 //            }
 //
-            return ResponseEntity.ok(Map.of(
-                    "verified", false,
-                    "message", "No matching invitee found"
-            ));
-
-        } catch (NumberFormatException e) {
-            return ResponseEntity.badRequest().body("Invalid eventId format");
-        } catch (Exception e) {
-            return ResponseEntity.status(500).body("Error during verification: " + e.getMessage());
-        }
-    }
+//            return ResponseEntity.ok(Map.of(
+//                    "verified", false,
+//                    "message", "No matching invitee found"
+//            ));
+//
+//        } catch (NumberFormatException e) {
+//            return ResponseEntity.badRequest().body("Invalid eventId format");
+//        } catch (Exception e) {
+//            return ResponseEntity.status(500).body("Error during verification: " + e.getMessage());
+//        }
+//    }
 }

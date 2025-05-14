@@ -448,7 +448,7 @@ public class EventController {
         List<Event> userEvents = eventRepository.findByCreatedBy(creator);
 
         model.addAttribute("events", userEvents);
-        return "Events/MyEvents";
+        return "Events/myEvents";
     }
 
     @PostMapping("/deleteEvent/{id}")
