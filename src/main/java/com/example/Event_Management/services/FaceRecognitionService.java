@@ -156,7 +156,7 @@ public class FaceRecognitionService {
         
         // Create a brighter version for detection
         Mat brightGray = new Mat();
-        gray.convertTo(brightGray, -1, 1.3, 30); // Increase brightness
+        gray.convertTo(brightGray, -1, 1.3, 30);
         Imgproc.equalizeHist(brightGray, brightGray);
 
         // Try detection with different parameters
@@ -164,52 +164,37 @@ public class FaceRecognitionService {
         Rect bestFace = null;
         double bestArea = 0;
 
-        // Safer detection parameters to avoid scale assertion error
-        double[] scaleFactors = {1.1, 1.15, 1.2}; // Increased minimum scale factor
-        int[] minNeighbors = {3, 4, 5}; // Standard neighbor requirements
+        // More conservative detection parameters
+        double[] scaleFactors = {1.2, 1.3, 1.4}; // Increased scale factors
+        int[] minNeighbors = {5, 6, 7}; // Increased minimum neighbors
         
-        // Calculate minimum face size based on image dimensions
+        // Calculate minimum and maximum face sizes
         int minDim = Math.min(gray.cols(), gray.rows());
-        int minFaceSize = (int) (minDim * 0.1); // 10% of the smaller image dimension
+        int minFaceSize = (int) (minDim * 0.2); // Increased from 0.1 to 0.2
+        int maxFaceSize = (int) (minDim * 0.8); // Decreased from 0.9 to 0.8
         Size minSize = new Size(minFaceSize, minFaceSize);
-        Size maxSize = new Size(gray.cols() * 0.9, gray.rows() * 0.9); // 90% of image dimensions
+        Size maxSize = new Size(maxFaceSize, maxFaceSize);
 
         try {
             for (CascadeClassifier detector : faceDetectors) {
-                if (detector == null || detector.empty()) {
-                    logger.warn("Skipping empty/null detector");
-                    continue;
-                }
+                if (detector == null || detector.empty()) continue;
 
                 for (double scaleFactor : scaleFactors) {
                     for (int neighbors : minNeighbors) {
                         try {
-                            // Ensure image dimensions are valid
-                            if (brightGray.cols() <= 0 || brightGray.rows() <= 0) {
-                                logger.warn("Invalid image dimensions: {}x{}", brightGray.cols(), brightGray.rows());
-                                continue;
-                            }
-
-                            // Ensure scale factor is valid
-                            if (scaleFactor <= 1.0) {
-                                logger.warn("Invalid scale factor: {}", scaleFactor);
-                                continue;
-                            }
-
                             detector.detectMultiScale(
-                                brightGray,      // Input image
-                                faces,           // Output faces
-                                scaleFactor,     // Scale factor
-                                neighbors,       // Min neighbors
-                                0,              // Flags
-                                minSize,        // Min size
-                                maxSize         // Max size
+                                brightGray,
+                                faces,
+                                scaleFactor,
+                                neighbors,
+                                0,
+                                minSize,
+                                maxSize
                             );
 
                             if (!faces.empty()) {
                                 Rect[] facesArray = faces.toArray();
                                 for (Rect face : facesArray) {
-                                    // Validate face rectangle
                                     if (face.x >= 0 && face.y >= 0 && 
                                         face.width > 0 && face.height > 0 &&
                                         face.x + face.width <= brightGray.cols() &&
@@ -224,33 +209,48 @@ public class FaceRecognitionService {
                                 }
                             }
                         } catch (Exception e) {
-                            logger.warn("Error during face detection with parameters: scale={}, neighbors={}: {}", 
+                            logger.warn("Detection failed with scale={}, neighbors={}: {}", 
                                       scaleFactor, neighbors, e.getMessage());
+                            // Continue with next parameters
                         }
                     }
                 }
             }
-        } catch (Exception e) {
-            logger.error("Error during face detection process: {}", e.getMessage());
-        }
 
-        if (bestFace == null) {
-            logger.debug("No faces detected after trying all classifiers and parameters");
-            gray.release();
-            brightGray.release();
-            faces.release();
-            return null;
-        }
+            if (bestFace == null) {
+                logger.debug("No faces detected");
+                gray.release();
+                brightGray.release();
+                faces.release();
+                return null;
+            }
 
-        try {
-            // Add padding to the face region (20%)
-            int padding = (int) (Math.min(bestFace.width, bestFace.height) * 0.2);
+            // Use smaller padding to reduce boundary issues
+            int desiredPadding = (int) (Math.min(bestFace.width, bestFace.height) * 0.1); // Reduced from 0.2 to 0.1
+            int leftPadding = Math.min(desiredPadding, bestFace.x);
+            int topPadding = Math.min(desiredPadding, bestFace.y);
+            int rightPadding = Math.min(desiredPadding, gray.cols() - (bestFace.x + bestFace.width));
+            int bottomPadding = Math.min(desiredPadding, gray.rows() - (bestFace.y + bestFace.height));
+
+            // Create padded rectangle with validated boundaries
             Rect paddedFace = new Rect(
-                Math.max(0, bestFace.x - padding),
-                Math.max(0, bestFace.y - padding),
-                Math.min(gray.cols() - (bestFace.x - padding), bestFace.width + 2 * padding),
-                Math.min(gray.rows() - (bestFace.y - padding), bestFace.height + 2 * padding)
+                bestFace.x - leftPadding,
+                bestFace.y - topPadding,
+                bestFace.width + leftPadding + rightPadding,
+                bestFace.height + topPadding + bottomPadding
             );
+
+            // Strict boundary check
+            if (paddedFace.x < 0 || paddedFace.y < 0 ||
+                paddedFace.x + paddedFace.width > gray.cols() ||
+                paddedFace.y + paddedFace.height > gray.rows() ||
+                paddedFace.width <= 0 || paddedFace.height <= 0) {
+                logger.error("Invalid padded face rectangle: " + paddedFace);
+                gray.release();
+                brightGray.release();
+                faces.release();
+                return null;
+            }
 
             // Extract and process face region
             Mat face = new Mat(gray, paddedFace);
@@ -270,14 +270,13 @@ public class FaceRecognitionService {
             face.release();
             faces.release();
 
-            logger.debug("Successfully detected and processed face");
             return normalizedFace;
             
         } catch (Exception e) {
-            logger.error("Error processing detected face: {}", e.getMessage());
-            gray.release();
-            brightGray.release();
-            faces.release();
+            logger.error("Error in face detection/processing: {}", e.getMessage(), e);
+            if (gray != null) gray.release();
+            if (brightGray != null) brightGray.release();
+            if (faces != null) faces.release();
             return null;
         }
     }

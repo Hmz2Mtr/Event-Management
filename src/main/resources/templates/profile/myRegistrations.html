@@ -177,7 +177,7 @@
           <a href="#"><span>Admin Resources</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
           <ul>
             <li><a href="/createEvent">Create Event</a></li>
-            <li><a href="/MyEvents">My Events</a></li>
+            <li><a href="/myEvents">My Events</a></li>
             <li><a href="/dashboard">Dashboard</a></li>
             <li><a href="/registrations">Registrations</a></li>
           </ul>
@@ -220,25 +220,50 @@
       </div>
       <!-- Main Content -->
       <div class="profile-content">
-        <h1 class="profile-title">My Registrations</h1>
+        <h2 class="profile-title">My Registrations</h2>
+
+        <!-- Success Message -->
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <!-- Error Message -->
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
         <div th:if="${sessions != null and !sessions.isEmpty()}">
           <div class="table-responsive">
-            <table class="profile-table">
+            <table class="table table-striped">
               <thead>
-              <tr>
-                <th>Event Name</th>
-                <th>Session Name</th>
-                <th>Invitee</th>
-                <th>Username</th>
-              </tr>
+                <tr>
+                  <th>Event</th>
+                  <th>Session</th>
+                  <th>Date</th>
+                  <th>Time</th>
+                  <th>Location</th>
+                  <th>Actions</th>
+                </tr>
               </thead>
               <tbody>
-              <tr th:each="session : ${sessions}">
-                <td th:text="${session.eventName != null} ? ${session.eventName} : '-'">-</td>
-                <td th:text="${session.sessionName != null} ? ${session.sessionName} : '-'">-</td>
-                <td th:text="${session.invitee != null} ? ${session.invitee} : '-'">-</td>
-                <td th:text="${session.username != null} ? ${session.username} : '-'">-</td>
-              </tr>
+                <tr th:each="registration : ${sessions}">
+                  <td th:text="${registration.eventName}"></td>
+                  <td th:text="${registration.sessionName}"></td>
+                  <td th:text="${registration.session.date}"></td>
+                  <td th:text="${registration.session.startTime + ' - ' + registration.session.endTime}"></td>
+                  <td th:text="${registration.session.place.name + ', ' + registration.session.place.ville.name}"></td>
+                  <td>
+                    <form th:action="@{/deleteRegistration}" method="post" style="display: inline;">
+                      <input type="hidden" name="registrationId" th:value="${registration.id}" />
+                      <button type="submit" class="btn btn-danger btn-sm" 
+                              onclick="return confirm('Are you sure you want to cancel this registration?')">
+                        <i class="bi bi-trash"></i> Cancel
+                      </button>
+                    </form>
+                  </td>
+                </tr>
               </tbody>
             </table>
           </div>

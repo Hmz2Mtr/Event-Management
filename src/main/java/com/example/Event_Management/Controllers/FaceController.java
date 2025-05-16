@@ -3,9 +3,11 @@ package com.example.Event_Management.Controllers;
 import com.example.Event_Management.entities.event.Event;
 import com.example.Event_Management.entities.invitation.InvitationSession;
 import com.example.Event_Management.repository.event.EventRepository;
+import com.example.Event_Management.security.TokenDecoder.JwtTokenDecoder;
 import com.example.Event_Management.security.entities.AppUser;
 import com.example.Event_Management.security.repository.AppUserRepository;
 import com.example.Event_Management.services.FaceRecognitionService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfByte;
 import org.opencv.imgcodecs.Imgcodecs;
@@ -21,6 +23,8 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+import static com.example.Event_Management.security.Controller.AccountRestController.addAuthButtonAttributes;
+
 @Controller
 @CrossOrigin("*")
 public class FaceController {
@@ -31,22 +35,31 @@ public class FaceController {
     private final Map<String, Long> lastRecognitionTimes = new ConcurrentHashMap<>();
     private final Map<String, String> lastRecognizedUsers = new ConcurrentHashMap<>();
     private static final long RECOGNITION_COOLDOWN = 2000; // 2 seconds cooldown
+    private JwtTokenDecoder jwtTokenDecoder;
 
     public FaceController(EventRepository eventRepository,
-                         AppUserRepository appUserRepository,
-                         FaceRecognitionService faceRecognitionService) {
+                          AppUserRepository appUserRepository,
+                          FaceRecognitionService faceRecognitionService, JwtTokenDecoder jwtTokenDecoder) {
         this.eventRepository = eventRepository;
         this.appUserRepository = appUserRepository;
         this.faceRecognitionService = faceRecognitionService;
+        this.jwtTokenDecoder = jwtTokenDecoder;
     }
 
     @GetMapping("/scan/{eventId}/{sessionId}")
-    public String showScanPage(@PathVariable Long eventId, @PathVariable Long sessionId, Model model) {
+    public String showScanPage(@PathVariable Long eventId, @PathVariable Long sessionId, Model model, HttpServletRequest request) {
         try {
             Event event = eventRepository.findById(eventId)
                     .orElseThrow(() -> new RuntimeException("Event not found"));
             model.addAttribute("event", event);
             model.addAttribute("sessionId", sessionId);
+
+            // Decode JWT using JwtTokenDecoder
+            Map<String, Object> userInfo = jwtTokenDecoder.decodeToken(request);
+            model.addAttribute("username", userInfo.get("username"));
+            model.addAttribute("roles", userInfo.get("roles"));
+            addAuthButtonAttributes(model, userInfo);
+            
             return "admin/face-scan";
         } catch (Exception e) {
             logger.error("Error showing scan page: ", e);
@@ -62,16 +75,14 @@ public class FaceController {
                                     @RequestBody Map<String, String> request) {
         String sessionKey = eventId + "-" + sessionId;
         long currentTime = System.currentTimeMillis();
-        
-        // Clear previous recognition if it's been more than the cooldown period
-        Long lastRecognitionTime = lastRecognitionTimes.get(sessionKey);
-        if (lastRecognitionTime != null && currentTime - lastRecognitionTime > RECOGNITION_COOLDOWN) {
-            lastRecognizedUsers.remove(sessionKey);
-        }
 
+        // Always clear previous recognition state when starting a new scan
+        lastRecognizedUsers.remove(sessionKey);
+        lastRecognitionTimes.remove(sessionKey);
+            
         try {
             String imageBase64 = request.get("image").split(",")[1];
-            
+
             // Get event and session invitees
             Event event = eventRepository.findById(eventId)
                     .orElseThrow(() -> new RuntimeException("Event not found"));
@@ -136,22 +147,7 @@ public class FaceController {
             // Compare with each invitee's face
             AppUser matchedUser = null;
             double bestMatchScore = 0.0;
-
-            // Check if we already recognized someone recently
-            String lastRecognizedUser = lastRecognizedUsers.get(sessionKey);
-            if (lastRecognizedUser != null) {
-                capturedImage.release();
-                alignedFace.release();
-                return ResponseEntity.ok()
-                    .cacheControl(CacheControl.noStore())
-                    .body(Map.of(
-                        "success", true,
-                        "message", "Welcome " + lastRecognizedUser + "!",
-                        "user", lastRecognizedUser,
-                        "shouldContinue", false
-                    ));
-            }
-
+            
             for (AppUser invitee : invitees) {
                 if (invitee.getProfilePicture() == null) continue;
 

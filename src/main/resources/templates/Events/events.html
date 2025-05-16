@@ -30,21 +30,32 @@
             }
             .card-body {
                 padding: 15px;
+                text-align: center;
             }
             .card-title {
                 font-size: 1.25rem;
                 margin-bottom: 10px;
                 font-weight: 600;
+                text-align: center;
+            }
+            .card-title a {
+                color: #333;
+                text-decoration: none;
+            }
+            .card-title a:hover {
+                color: #28a745;
             }
             .event-details {
                 font-size: 0.85rem;
                 color: #666;
                 margin-bottom: 5px;
+                text-align: center;
             }
             .card-text {
                 font-size: 0.9rem;
                 color: #444;
                 margin-bottom: 15px;
+                text-align: center;
             }
             .btn-register {
                 background-color: #28a745;
@@ -55,10 +66,14 @@
                 border-radius: 5px;
                 width: 100%;
                 text-align: center;
+                display: block;
+                text-decoration: none;
             }
             .btn-register:hover {
                 background-color: #218838;
                 border-color: #218838;
+                color: white;
+                text-decoration: none;
             }
             .no-events {
                 text-align: center;
@@ -70,6 +85,7 @@
                 font-size: 0.85rem;
                 color: #666;
                 margin-bottom: 10px;
+                text-align: center;
             }
             .profile-main {
                 width: 100%;
@@ -202,6 +218,90 @@
                     height: 30px;
                 }
             }
+            
+            /* Updated Filter Sidebar Styles */
+            .filter-sidebar {
+                background: white;
+                padding: 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+                margin-bottom: 20px;
+                position: sticky;
+                top: 100px;
+                max-height: calc(100vh - 120px);
+                overflow-y: auto;
+            }
+            
+            .filter-title {
+                font-size: 1.2rem;
+                font-weight: 600;
+                margin-bottom: 15px;
+                color: #333;
+            }
+            
+            .filter-section {
+                margin-bottom: 20px;
+            }
+            
+            .filter-section label {
+                display: block;
+                margin-bottom: 8px;
+                color: #555;
+                font-weight: 500;
+            }
+            
+            .filter-section select,
+            .filter-section input {
+                width: 100%;
+                padding: 8px;
+                border: 1px solid #ddd;
+                border-radius: 5px;
+                margin-bottom: 10px;
+            }
+            
+            .filter-btn {
+                background-color: #28a745;
+                color: white;
+                border: none;
+                padding: 10px;
+                border-radius: 5px;
+                width: 100%;
+                cursor: pointer;
+                transition: background-color 0.3s;
+            }
+            
+            .filter-btn:hover {
+                background-color: #218838;
+            }
+            
+            .reset-btn {
+                background-color: #6c757d;
+                color: white;
+                border: none;
+                padding: 10px;
+                border-radius: 5px;
+                width: 100%;
+                cursor: pointer;
+                margin-top: 10px;
+                transition: background-color 0.3s;
+            }
+            
+            .reset-btn:hover {
+                background-color: #5a6268;
+            }
+            
+            @media (max-width: 768px) {
+                .filter-sidebar {
+                    position: relative;
+                    top: 0;
+                    max-height: none;
+                    margin-bottom: 30px;
+                }
+                
+                .col-md-3 {
+                    order: -1; /* Makes the sidebar appear on top on mobile */
+                }
+            }
         </style>
     </th:block>
 </head>
@@ -230,40 +330,90 @@
             </nav>
         </div>
 
-
-        <!-- Events Section -->
-        <section id="events" class="events section">
-            <div class="container" data-aos="fade-up">
-                <div class="row" th:if="${events != null and not #lists.isEmpty(events)}">
-                    <div class="col-md-6 col-lg-4 d-flex align-items-stretch mb-4" th:each="event : ${events}">
-                        <div class="card">
-                            <div class="card-img">
-                                <img th:src="${event.imageBase64 != null} ? 'data:image/jpg;base64,' + ${event.imageBase64} : 'https://t4.ftcdn.net/jpg/02/16/94/65/360_F_216946587_rmug8FCNgpDCPQlstiCJ0CAXJ2sqPRU7.jpg'"  onerror="this.src='https://t4.ftcdn.net/jpg/02/16/94/65/360_F_216946587_rmug8FCNgpDCPQlstiCJ0CAXJ2sqPRU7.jpg'"/>
+        <div class="container mt-4">
+            <div class="row">
+                <!-- Filter Sidebar -->
+                <div class="col-md-3">
+                    <div class="filter-sidebar">
+                        <h4 class="filter-title">Filter Events</h4>
+                        <form th:action="@{/events}" method="get">
+                            <div class="filter-section">
+                                <label for="type">Event Type</label>
+                                <select name="type" id="type" class="form-control">
+                                    <option value="">All Types</option>
+                                    <option th:each="type : ${eventTypes}"
+                                            th:value="${type}"
+                                            th:text="${type}"
+                                            th:selected="${param.type != null && param.type[0] == type}">
+                                    </option>
+                                </select>
                             </div>
-                            <div class="card-body">
-                                <h3 class="card-title"><a th:href="@{'/eventDetails/' + ${event.id}}" th:text="${event.name}">Event Name</a></h3>
-                                <p class="event-details" th:if="${event.sessions != null and not #lists.isEmpty(event.sessions)}">
-                                    <i class="bi bi-calendar"></i> <span th:text="${event.sessions[0].date != null} ? ${#temporals.format(event.sessions[0].date, 'MMM dd, yyyy')} : 'TBD'">TBD</span> |
-                                    <span th:text="${event.sessions[0].startTime != null} ? ${#temporals.format(event.sessions[0].startTime, 'HH:mm')} : 'TBD'">TBD</span> -
-                                    <span th:text="${event.sessions[0].endTime != null} ? ${#temporals.format(event.sessions[0].endTime, 'HH:mm')} : 'TBD'">TBD</span>
-                                </p>
-                                <p class="event-details" th:if="${event.sessions != null and not #lists.isEmpty(event.sessions)}">
-                                    <i class="bi bi-geo-alt"></i> <span th:text="${event.sessions[0].place != null and event.sessions[0].place.ville != null} ? ${event.sessions[0].place.ville.name} + ', ' + ${event.sessions[0].place.name} : 'TBD'">TBD</span>
-                                </p>
-                                <p class="speakers-list" th:if="${event.sessions != null and not #lists.isEmpty(event.sessions) and event.sessions[0].guestSpeakers != null and not #lists.isEmpty(event.sessions[0].guestSpeakers)}">
-                                    <i class="bi bi-person"></i> Speakers: <span th:each="speaker, iterStat : ${event.sessions[0].guestSpeakers}" th:text="${speaker.speakerName} + ${iterStat.last ? '' : ', '}">TBD</span>
-                                </p>
-                                <p class="card-text" th:text="${event.description != null} ? ${event.description} : 'No description available.'">No description available.</p>
-                                <a th:href="@{'/register?eventId=' + ${event.id}}" class="btn btn-register">Register Now</a>
+                            
+                            <div class="filter-section">
+                                <label for="ville">City</label>
+                                <select name="ville" id="ville" class="form-control">
+                                    <option value="">All Cities</option>
+                                    <option th:each="ville : ${villes}"
+                                            th:value="${ville}"
+                                            th:text="${ville}"
+                                            th:selected="${param.ville != null && param.ville[0] == ville}">
+                                    </option>
+                                </select>
+                            </div>
+                            
+                            <div class="filter-section">
+                                <label for="date">Date</label>
+                                <input type="date" id="date" name="date" class="form-control"
+                                       th:value="${param.date != null ? param.date[0] : ''}">
+                            </div>
+                            
+                            <button type="submit" class="filter-btn">Apply Filters</button>
+                            <a href="/events" class="btn reset-btn">Reset Filters</a>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- Events Grid -->
+                <div class="col-md-9">
+                    <div class="row" th:if="${events != null and not #lists.isEmpty(events)}">
+                        <div class="col-md-6 col-lg-4 d-flex align-items-stretch mb-4" th:each="event : ${events}">
+                            <div class="card">
+                                <div class="card-img">
+                                    <img th:if="${event.imageBase64 != null}"
+                                         th:src="@{'data:image/jpeg;base64,' + ${event.imageBase64}}"
+                                         class="uniform-image"
+                                         th:alt="${event.name}"
+                                         onerror="this.src='https://t4.ftcdn.net/jpg/02/16/94/65/360_F_216946587_rmug8FCNgpDCPQlstiCJ0CAXJ2sqPRU7.jpg'"/>
+                                    <img th:unless="${event.imageBase64 != null}"
+                                         src="https://t4.ftcdn.net/jpg/02/16/94/65/360_F_216946587_rmug8FCNgpDCPQlstiCJ0CAXJ2sqPRU7.jpg"
+                                         class="uniform-image"
+                                         alt="Default Event Image"/>
+                                </div>
+                                <div class="card-body">
+                                    <h3 class="card-title"><a th:href="@{'/eventDetails/' + ${event.id}}" th:text="${event.name}">Event Name</a></h3>
+                                    <p class="event-details" th:if="${event.sessions != null and not #lists.isEmpty(event.sessions)}">
+                                        <i class="bi bi-calendar"></i> <span th:text="${event.sessions[0].date != null} ? ${#temporals.format(event.sessions[0].date, 'MMM dd, yyyy')} : 'TBD'">TBD</span> |
+                                        <span th:text="${event.sessions[0].startTime != null} ? ${#temporals.format(event.sessions[0].startTime, 'HH:mm')} : 'TBD'">TBD</span> -
+                                        <span th:text="${event.sessions[0].endTime != null} ? ${#temporals.format(event.sessions[0].endTime, 'HH:mm')} : 'TBD'">TBD</span>
+                                    </p>
+                                    <p class="event-details" th:if="${event.sessions != null and not #lists.isEmpty(event.sessions)}">
+                                        <i class="bi bi-geo-alt"></i> <span th:text="${event.sessions[0].place != null and event.sessions[0].place.ville != null} ? ${event.sessions[0].place.ville.name} + ', ' + ${event.sessions[0].place.name} : 'TBD'">TBD</span>
+                                    </p>
+                                    <p class="speakers-list" th:if="${event.sessions != null and not #lists.isEmpty(event.sessions) and event.sessions[0].guestSpeakers != null and not #lists.isEmpty(event.sessions[0].guestSpeakers)}">
+                                        <i class="bi bi-person"></i> Speakers: <span th:each="speaker, iterStat : ${event.sessions[0].guestSpeakers}" th:text="${speaker.speakerName} + ${iterStat.last ? '' : ', '}">TBD</span>
+                                    </p>
+                                    <p class="card-text" th:text="${event.description != null} ? ${event.description} : 'No description available.'">No description available.</p>
+                                    <a th:href="@{'/register?eventId=' + ${event.id}}" class="btn btn-register">Register Now</a>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="no-events" th:if="${events == null or #lists.isEmpty(events)}">
-                    <p>No upcoming events available at the moment. Check back later!</p>
+                    <div class="no-events" th:if="${events == null or #lists.isEmpty(events)}">
+                        <p>No upcoming events available at the moment. Check back later!</p>
+                    </div>
                 </div>
             </div>
-        </section><!-- /Events Section -->
+        </div>
     </div>
 </body>
 </html>

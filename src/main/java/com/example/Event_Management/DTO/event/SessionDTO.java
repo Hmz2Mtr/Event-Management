@@ -13,5 +13,5 @@ public class SessionDTO {
     private String endTime;
     private PlaceDTO place;
     private String guestSpeakers;
-
+    private boolean facialDetection;
 }

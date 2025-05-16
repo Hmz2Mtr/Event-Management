@@ -33,6 +33,9 @@ public class Session {
     @Column(nullable = false)
     private LocalTime endTime;
 
+    @Column(nullable = false)
+    private boolean facialDetection = false;
+
     @ManyToOne
     @JoinColumn(name = "event_id", nullable = false)
     private Event event;

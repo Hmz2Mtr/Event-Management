@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -17,5 +18,14 @@ public class InvitationSessionService {
 
     public List<InvitationSession> findByInvitationForm(InvitationForm form) {
         return invitationSessionRepository.findByInvitationForm(form);
+    }
+
+    public InvitationSession findById(Long id) {
+        Optional<InvitationSession> session = invitationSessionRepository.findById(id);
+        return session.orElse(null);
+    }
+
+    public void deleteById(Long id) {
+        invitationSessionRepository.deleteById(id);
     }
 }

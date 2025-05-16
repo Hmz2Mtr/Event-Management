@@ -17,11 +17,9 @@ import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.security.Principal;
 import java.util.List;
@@ -36,14 +34,15 @@ public class ProfileController {
     private InvitationFormService invitationFormService;
     private JwtTokenDecoder jwtTokenDecoder;
     private PasswordEncoder passwordEncoder;
+    private InvitationSessionService invitationSessionService;
 
-    public ProfileController(AccountService accountService, InvitationFormService invitationFormService, JwtTokenDecoder jwtTokenDecoder, PasswordEncoder passwordEncoder) {
+    public ProfileController(AccountService accountService, InvitationFormService invitationFormService, JwtTokenDecoder jwtTokenDecoder, PasswordEncoder passwordEncoder, InvitationSessionService invitationSessionService) {
         this.accountService = accountService;
         this.invitationFormService = invitationFormService;
         this.jwtTokenDecoder = jwtTokenDecoder;
         this.passwordEncoder = passwordEncoder;
+        this.invitationSessionService = invitationSessionService;
     }
-
 
     @GetMapping("/registrations")
     public String showRegistrations(Model model, HttpServletRequest request) {
@@ -190,5 +189,37 @@ public class ProfileController {
         model.addAttribute("user", user);
         model.addAttribute("passwordForm", new PasswordForm());
         return "profile/changePassword";
+    }
+
+    @PostMapping("/deleteRegistration")
+    public String deleteRegistration(@RequestParam Long registrationId,
+                                   HttpServletRequest request,
+                                   RedirectAttributes redirectAttributes) {
+        Map<String, Object> userInfo = jwtTokenDecoder.decodeToken(request);
+        AppUser user = accountService.loadUserByUsername((String) userInfo.get("username"));
+        
+        try {
+            InvitationSession registration = invitationSessionService.findById(registrationId);
+            
+            if (registration == null) {
+                redirectAttributes.addFlashAttribute("error", "Registration not found.");
+                return "redirect:/registrations";
+            }
+            
+            // Check if the registration belongs to the current user
+            if (!registration.getInvitationForm().getEmail().equals(user.getEmail())) {
+                redirectAttributes.addFlashAttribute("error", "You are not authorized to cancel this registration.");
+                return "redirect:/registrations";
+            }
+            
+            // Delete the registration
+            invitationSessionService.deleteById(registrationId);
+            redirectAttributes.addFlashAttribute("success", "Registration cancelled successfully.");
+            
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "An error occurred while cancelling the registration.");
+        }
+        
+        return "redirect:/registrations";
     }
 }

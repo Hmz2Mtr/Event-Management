@@ -72,7 +72,7 @@ public class SecurityConfig {
                                 "/logout",
                                 "/register",
                                 "/scan",
-                                "/MyEvents/**",
+                                "/myEvents/**",
                                 "/eventDetails/**",
                                 "/registrations",
                                 "/infos",
@@ -80,7 +80,7 @@ public class SecurityConfig {
                                 "/api/scan/**"
                                 ).permitAll()
                         .requestMatchers("GET", "/register", "/eventDetails/**").permitAll() // Allow GET /events for all
-                        .requestMatchers("GET", "/createEvent/**","eventCreated", "/MyEvents/**","/deleteEvent/**", "/modifyEvent/**").permitAll() // Allow GET /events for all
+                        .requestMatchers("GET", "/createEvent/**","eventCreated", "/myEvents/**","/deleteEvent/**", "/modifyEvent/**").permitAll() // Allow GET /events for all
                         .requestMatchers("POST","/createEvent/**", "/deleteEvent/**", "/modifyEvent/**", "/modifyEvent").hasAnyAuthority("ADMIN", "SUPER_ADMIN") // Restrict POST /events
                         .requestMatchers("/dashboard/**").permitAll() // Restrict dashboard access
                         .anyRequest().authenticated()

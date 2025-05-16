@@ -184,6 +184,8 @@ public class EventController {
                 session.setPlace(place);
                 session.setEventName(event.getName());
                 session.setCreatorName(creator.getUsername());
+                // Process facial recognition if enabled
+                session.setFacialDetection(sessionDTO.isFacialDetection());
 
                 // Process guest speakers for this session
                 if (sessionDTO.getGuestSpeakers() != null && !sessionDTO.getGuestSpeakers().trim().isEmpty()) {
@@ -222,89 +224,69 @@ public class EventController {
 
 
     @GetMapping("/events")
-    public String eventsPage(Model model, HttpServletRequest request) {
-        // Decode JWT to get user info
+    public String eventsPage(
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) String ville,
+            @RequestParam(required = false) String date,
+            Model model, 
+            HttpServletRequest request) {
+        
+        // Decode JWT using JwtTokenDecoder
         Map<String, Object> userInfo = jwtTokenDecoder.decodeToken(request);
         model.addAttribute("username", userInfo.get("username"));
         model.addAttribute("roles", userInfo.get("roles"));
         addAuthButtonAttributes(model, userInfo);
 
-//        // Fetch all events
-//        List<Event> events = eventRepository.findAll();
-//        List<EventDTO> eventDTOs = new ArrayList<>();
-//        for (Event event : events) {
-//            EventDTO eventDTO = new EventDTO();
-//            eventDTO.setId(event.getId());
-//            eventDTO.setName(event.getName());
-//            eventDTO.setDescription(event.getDescription());
-//            eventDTO.setEventType(event.getEventType() != null ? event.getEventType().toString() : null);
-//            //eventDTO.setFacialRecognition(event.isFacialRecognition());
-//            eventDTO.setCreatorName(event.getCreatorName());
-//
-//            // Convert List<Session> to List<SessionDTO>
-//            List<SessionDTO> sessionDTOs = new ArrayList<>();
-//            for (Session session : event.getSessions()) {
-//                SessionDTO sessionDTO = new SessionDTO();
-//                sessionDTO.setName(session.getName());
-//                sessionDTO.setDate(session.getDate() != null ? session.getDate().toString() : null);
-//                sessionDTO.setStartTime(session.getStartTime() != null ? session.getStartTime().toString() : null);
-//                sessionDTO.setEndTime(session.getEndTime() != null ? session.getEndTime().toString() : null);
-//                if (session.getPlace() != null) {
-//                    PlaceDTO placeDTO = new PlaceDTO();
-//                    placeDTO.setName(session.getPlace().getName());
-//                    if (session.getPlace().getVille() != null) {
-//                        VilleDTO villeDTO = new VilleDTO();
-//                        villeDTO.setName(session.getPlace().getVille().getName());
-//                        placeDTO.setVille(villeDTO);
-//                    }
-//                    sessionDTO.setPlace(placeDTO);
-//                }
-//                // Set guest speakers as a comma-separated string
-//                if (session.getGuestSpeakers() != null && !session.getGuestSpeakers().isEmpty()) {
-//                    // Use the speaker's username instead of name
-//                    String guestSpeakers = session.getGuestSpeakers().stream()
-//                            .map(speaker -> speaker.getSpeaker().getUsername())
-//                            .collect(Collectors.joining(","));
-//                    sessionDTO.setGuestSpeakers(guestSpeakers);
-//                } else {
-//                    sessionDTO.setGuestSpeakers("");
-//                }
-//                sessionDTOs.add(sessionDTO);
-//            }
-//            eventDTO.setSessions(sessionDTOs);
-//
-//            if (event.getImage() != null && event.getImage().length > 0) {
-//                try {
-//                    String base64Image = Base64.getEncoder().encodeToString(event.getImage());
-//                    eventDTO.setImageBase64(base64Image);
-//                    // Log the size of the encoded image
-//                    logger.debug("Encoded image size for event {}: {} bytes", event.getName(), base64Image.length());
-//                } catch (Exception e) {
-//                    logger.error("Error encoding image for event {}: {}", event.getName(), e.getMessage());
-//                }
-//            } else {
-//                logger.warn("No image data for event {}", event.getName());
-//            }
-//            eventDTOs.add(eventDTO);
-//        }
-//        logger.debug("Loaded {} events", eventDTOs.size());
-//        model.addAttribute("events", eventDTOs);
-
-
+        // Get all events
         List<Event> events = eventRepository.findAll();
-        for(Event event : events) {
-            try {
-                String base64Image = Base64.getEncoder().encodeToString(event.getImage());
-                event.setImageBase64(base64Image);
-                // Log the size of the encoded image
-                logger.debug("Encoded image size for event {}: {} bytes", event.getName(), base64Image.length());
-            } catch (Exception e) {
-                logger.error("Error encoding image for event {}: {}", event.getName(), e.getMessage());
+
+        // Apply filters
+        if (type != null && !type.isEmpty()) {
+            events = events.stream()
+                    .filter(event -> event.getEventType().toString().equals(type))
+                    .collect(Collectors.toList());
+        }
+
+        if (ville != null && !ville.isEmpty()) {
+            events = events.stream()
+                    .filter(event -> event.getSessions().stream()
+                            .anyMatch(session -> session.getPlace().getVille().getName().equals(ville)))
+                    .collect(Collectors.toList());
+        }
+
+        if (date != null && !date.isEmpty()) {
+            LocalDate filterDate = LocalDate.parse(date);
+            events = events.stream()
+                    .filter(event -> event.getSessions().stream()
+                            .anyMatch(session -> session.getDate().equals(filterDate)))
+                    .collect(Collectors.toList());
+        }
+
+        // Process images for each event
+        for (Event event : events) {
+            if (event.getImage() != null && event.getImage().length > 0) {
+                try {
+                    String base64Image = Base64.getEncoder().encodeToString(event.getImage());
+                    event.setImageBase64(base64Image);
+                } catch (Exception e) {
+                    logger.error("Error encoding image for event {}: {}", event.getName(), e.getMessage());
+                    event.setImageBase64(null);
+                }
             }
         }
+
+        // Add filter options to model
+        model.addAttribute("eventTypes", Arrays.stream(EventType.values())
+                .map(Enum::toString)
+                .collect(Collectors.toList()));
+        
+        List<String> villes = villeRepository.findAll().stream()
+                .map(Ville::getName)
+                .distinct()
+                .collect(Collectors.toList());
+        model.addAttribute("villes", villes);
+        
         model.addAttribute("events", events);
-
-
         return "Events/events";
     }
 
@@ -419,24 +401,31 @@ public class EventController {
 
 
 
-    @GetMapping("/MyEvents")
+    @GetMapping("/myEvents")
     public String myEventsPage(Model model, HttpServletRequest request, RedirectAttributes redirectAttributes) {
-        Map<String, Object> userInfo = jwtTokenDecoder.decodeToken(request);
-        String username = (String) userInfo.get("username");
-        model.addAttribute("username", username);
-        model.addAttribute("roles", userInfo.get("roles"));
-        addAuthButtonAttributes(model, userInfo);
+        try {
+            Map<String, Object> userInfo = jwtTokenDecoder.decodeToken(request);
+            String username = (String) userInfo.get("username");
+            if ("Guest".equals(username)) {
+                return "redirect:/signin";
+            }
+            
+            model.addAttribute("username", username);
+            model.addAttribute("roles", userInfo.get("roles"));
+            addAuthButtonAttributes(model, userInfo);
 
-        AppUser creator = accountService.loadUserByUsername(username);
-        if (creator == null) {
-            redirectAttributes.addFlashAttribute("error", "User not found");
-            return "redirect:/events";
+            AppUser creator = accountService.loadUserByUsername(username);
+            if (creator == null) {
+                redirectAttributes.addFlashAttribute("error", "User not found");
+                return "redirect:/events";
+            }
+
+            List<Event> userEvents = eventRepository.findByCreatedBy(creator);
+            model.addAttribute("events", userEvents);
+            return "Events/myEvents";
+        } catch (Exception e) {
+            return "redirect:/signin";
         }
-
-        List<Event> userEvents = eventRepository.findByCreatedBy(creator);
-
-        model.addAttribute("events", userEvents);
-        return "Events/myEvents";
     }
 
     @PostMapping("/deleteEvent/{id}")
@@ -523,6 +512,8 @@ public class EventController {
             // Convert Ville to VilleDTO
             sessionDTO.getPlace().setVille(new VilleDTO());
             sessionDTO.getPlace().getVille().setName(session.getPlace().getVille().getName());
+            // Set facial detection
+            sessionDTO.setFacialDetection(session.isFacialDetection());
             // Set guest speakers as a comma-separated string
             String guestSpeakers = session.getGuestSpeakers().stream()
                     .map(SessionSpeakers::getSpeaker)
@@ -641,6 +632,8 @@ public class EventController {
                 session.setPlace(place);
                 session.setEventName(event.getName());
                 session.setCreatorName(creator.getUsername());
+                // Process facial recognition if enabled
+                session.setFacialDetection(sessionDTO.isFacialDetection());
 
                 // Process guest speakers for this session
                 if (sessionDTO.getGuestSpeakers() != null && !sessionDTO.getGuestSpeakers().trim().isEmpty()) {

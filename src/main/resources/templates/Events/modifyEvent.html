@@ -121,7 +121,7 @@
                     <a href="#"><span>Admin Resources</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
                     <ul>
                         <li><a href="/createEvent">Create Event</a></li>
-                        <li><a href="/MyEvents">My Events</a></li>
+                        <li><a href="/myEvents">My Events</a></li>
                         <li><a href="/dashboard">Dashboard</a></li>
                         <li><a href="/registrations">Registrations</a></li>
                     </ul>
@@ -198,6 +198,12 @@
                             <div class="col-md-3 mb-3">
                                 <label th:for="'endTime-' + ${iterStat.index}" class="form-label">End Time</label>
                                 <input type="time" class="form-control" th:id="'endTime-' + ${iterStat.index}" th:name="'sessions[' + ${iterStat.index} + '].endTime'" th:value="${sess.endTime}" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" th:id="'facialDetection-' + ${iterStat.index}" th:name="'sessions[' + ${iterStat.index} + '].facialDetection'" th:checked="${sess.facialDetection}">
+                                    <label class="form-check-label" th:for="'facialDetection-' + ${iterStat.index}">Enable Facial Detection</label>
+                                </div>
                             </div>
                             <div class="col-md-4 mb-3">
                                 <label th:for="'placeName-' + ${iterStat.index}" class="form-label">Place Name</label>
@@ -330,6 +336,12 @@
                     <div class="col-md-3 mb-3">
                         <label for="endTime-${sessionCount}" class="form-label">End Time</label>
                         <input type="time" class="form-control" id="endTime-${sessionCount}" name="sessions[${sessionCount}].endTime" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" th:id="'facialDetection-' + ${sessionCount}" th:name="'sessions[' + ${sessionCount} + '].facialDetection'">
+                            <label class="form-check-label" th:for="'facialDetection-' + ${sessionCount}">Enable Facial Detection</label>
+                        </div>
                     </div>
                     <div class="col-md-4 mb-3">
                         <label for="placeName-${sessionCount}" class="form-label">Place Name</label>
